@@ -30,6 +30,7 @@ export function Canvas() {
   const selectEdge = useStore((s) => s.selectEdge)
   const addNode = useStore((s) => s.addNode)
   const drillInto = useStore((s) => s.drillInto)
+  const beginDrag = useStore((s) => s.beginDrag)
 
   const wrapper = useRef<HTMLDivElement>(null)
   const { screenToFlowPosition, setCenter } = useReactFlow()
@@ -120,6 +121,7 @@ export function Canvas() {
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           onNodeDoubleClick={onNodeDoubleClick}
+          onNodeDragStart={beginDrag}
           onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
           onDrop={onDrop}

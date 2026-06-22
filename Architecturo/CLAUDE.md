@@ -32,8 +32,10 @@ src/
   types.ts            modèle de données (Project, Graph, ArchNode, ArchEdge + EdgeDirection)
   store.ts            store Zustand : navigation, CRUD nœuds/arêtes, drill-down,
                       sélection (selectedNodeId/selectedEdgeId), applyDirection(),
-                      view ('dashboard'|'editor') + library (Record<id, Project>)
+                      view ('dashboard'|'editor') + library (Record<id, Project>),
+                      historique undo/redo (past/future + snap() sur ops structurelles)
   lib/demo.ts         visite guidée animée (3 niveaux) via useReactFlow().fitView
+  lib/exportImage.ts  export PNG/SVG de la vue courante (html-to-image)
   lib/nodeCatalog.ts  catalogue des types d'objets, groupés par CATÉGORIE
                       (Générique / Intégration / ServiceNow) — pas que ServiceNow
   lib/io.ts           export / import / partage (JSON + lien base64)

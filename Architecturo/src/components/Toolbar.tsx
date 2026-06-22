@@ -1,21 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Check,
+  ChevronDown,
   Download,
+  FileJson,
+  FileImage,
   FilePlus2,
   HelpCircle,
   LayoutGrid,
+  Redo2,
   Share2,
   Sparkles,
+  Undo2,
   Upload,
   type LucideIcon,
 } from 'lucide-react'
+import { useReactFlow } from '@xyflow/react'
 import { useStore } from '../store'
 import {
   buildShareLink,
   exportProject,
   importProjectFromFile,
 } from '../lib/io'
+import { exportImage } from '../lib/exportImage'
 
 export function Toolbar({
   onOpenAgent,
@@ -29,7 +36,22 @@ export function Toolbar({
   const newProject = useStore((s) => s.newProject)
   const loadProject = useStore((s) => s.loadProject)
   const goDashboard = useStore((s) => s.goDashboard)
+  const undo = useStore((s) => s.undo)
+  const redo = useStore((s) => s.redo)
+  const canUndo = useStore((s) => s.past.length > 0)
+  const canRedo = useStore((s) => s.future.length > 0)
+  const { getNodes } = useReactFlow()
   const [copied, setCopied] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  const exportRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) setExportOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
 
   const handleImport = async () => {
     try {
@@ -74,9 +96,31 @@ export function Toolbar({
       </div>
 
       <div className="flex items-center gap-1.5">
+        <TbBtn onClick={undo} icon={Undo2} label="Annuler" iconOnly disabled={!canUndo} title="Annuler (Ctrl/⌘+Z)" />
+        <TbBtn onClick={redo} icon={Redo2} label="Refaire" iconOnly disabled={!canRedo} title="Refaire (Ctrl/⌘+Maj+Z)" />
+        <div className="mx-1 h-6 w-px bg-line" />
         <TbBtn onClick={newProject} icon={FilePlus2} label="Nouveau" />
         <TbBtn onClick={handleImport} icon={Upload} label="Importer" />
-        <TbBtn onClick={() => exportProject(project)} icon={Download} label="Exporter" />
+
+        {/* Menu d'export */}
+        <div className="relative" ref={exportRef}>
+          <button
+            onClick={() => setExportOpen((v) => !v)}
+            className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-slate-300 transition-colors hover:bg-panel-2 hover:text-slate-100"
+          >
+            <Download size={14} />
+            <span className="hidden md:inline">Exporter</span>
+            <ChevronDown size={12} />
+          </button>
+          {exportOpen && (
+            <div className="absolute right-0 z-30 mt-1 w-48 animate-scale-in overflow-hidden rounded-lg border border-line bg-panel-2 py-1 shadow-panel">
+              <ExportItem icon={FileJson} label="JSON (.json)" onClick={() => { exportProject(project); setExportOpen(false) }} />
+              <ExportItem icon={FileImage} label="Image PNG (.png)" onClick={() => { exportImage('png', getNodes(), project.name); setExportOpen(false) }} />
+              <ExportItem icon={FileImage} label="Image vectorielle (.svg)" onClick={() => { exportImage('svg', getNodes(), project.name); setExportOpen(false) }} />
+            </div>
+          )}
+        </div>
+
         <TbBtn
           onClick={handleShare}
           icon={copied ? Check : Share2}
@@ -101,23 +145,51 @@ function TbBtn({
   icon: Icon,
   label,
   primary,
+  iconOnly,
+  disabled,
+  title,
 }: {
   onClick: () => void
   icon: LucideIcon
   label: string
   primary?: boolean
+  iconOnly?: boolean
+  disabled?: boolean
+  title?: string
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
+      disabled={disabled}
+      title={title ?? label}
+      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${
         primary
           ? 'text-emerald-400'
           : 'text-slate-300 hover:bg-panel-2 hover:text-slate-100'
       }`}
     >
       <Icon size={14} />
-      <span className="hidden md:inline">{label}</span>
+      {!iconOnly && <span className="hidden md:inline">{label}</span>}
+    </button>
+  )
+}
+
+function ExportItem({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: LucideIcon
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12px] text-slate-300 transition-colors hover:bg-panel hover:text-slate-100"
+    >
+      <Icon size={14} className="text-slate-500" />
+      {label}
     </button>
   )
 }

@@ -14,6 +14,8 @@ export default function App() {
   const loadProject = useStore((s) => s.loadProject)
   const currentGraph = useStore((s) => s.currentGraph())
   const view = useStore((s) => s.view)
+  const undo = useStore((s) => s.undo)
+  const redo = useStore((s) => s.redo)
   const [agentOpen, setAgentOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
 
@@ -25,6 +27,20 @@ export default function App() {
       history.replaceState(null, '', window.location.pathname + window.location.search)
     }
   }, [loadProject])
+
+  // Raccourcis Annuler / Refaire (hors saisie dans un champ).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return
+      e.preventDefault()
+      if (e.shiftKey) redo()
+      else undo()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [undo, redo])
 
   if (view === 'dashboard') return <Dashboard />
 

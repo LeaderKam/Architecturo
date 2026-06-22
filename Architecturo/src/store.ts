@@ -64,6 +64,9 @@ interface AppState {
   view: 'dashboard' | 'editor'
   /** Sens de la dernière navigation entre niveaux (anime le canvas). */
   lastNav: 'down' | 'up'
+  /** Historique pour annuler/refaire (snapshots du projet). */
+  past: Project[]
+  future: Project[]
   /** Bibliothèque de tous les schémas créés (id -> Project). */
   library: Record<string, Project>
 
@@ -86,6 +89,12 @@ interface AppState {
   // --- navigation / drill-down ---
   enterGraph: (graphId: string) => void
   goToPathIndex: (index: number) => void
+
+  // --- historique ---
+  undo: () => void
+  redo: () => void
+  /** Capture l'état avant un glisser-déposer (pour l'annuler en un coup). */
+  beginDrag: () => void
 
   // --- canvas (React Flow) ---
   onNodesChange: (changes: NodeChange[]) => void
@@ -120,6 +129,13 @@ function writeGraph(p: Project, graphId: string, patch: Partial<Graph>): Project
   return touch({ ...p, graphs: { ...p.graphs, [graphId]: { ...g, ...patch } } })
 }
 
+const HISTORY = 60
+
+/** Pousse l'état courant dans l'historique « annuler » et vide « refaire ». */
+function snap(s: { past: Project[]; project: Project }) {
+  return { past: [...s.past, s.project].slice(-HISTORY), future: [] as Project[] }
+}
+
 const initialProject = sampleProject()
 
 export const useStore = create<AppState>()(
@@ -131,6 +147,8 @@ export const useStore = create<AppState>()(
       selectedEdgeId: null,
       view: 'dashboard',
       lastNav: 'down',
+      past: [],
+      future: [],
       library: { [initialProject.id]: initialProject },
 
       currentGraphId: () => {
@@ -225,10 +243,44 @@ export const useStore = create<AppState>()(
           lastNav: index < s.path.length - 1 ? 'up' : s.lastNav,
         })),
 
+      beginDrag: () => set((s) => snap(s)),
+
+      undo: () =>
+        set((s) => {
+          if (s.past.length === 0) return {}
+          const previous = s.past[s.past.length - 1]
+          const cur = s.path[s.path.length - 1]
+          return {
+            project: previous,
+            past: s.past.slice(0, -1),
+            future: [s.project, ...s.future].slice(0, HISTORY),
+            selectedNodeId: null,
+            selectedEdgeId: null,
+            path: previous.graphs[cur] ? s.path : [previous.rootGraphId],
+          }
+        }),
+
+      redo: () =>
+        set((s) => {
+          if (s.future.length === 0) return {}
+          const next = s.future[0]
+          const cur = s.path[s.path.length - 1]
+          return {
+            project: next,
+            past: [...s.past, s.project].slice(-HISTORY),
+            future: s.future.slice(1),
+            selectedNodeId: null,
+            selectedEdgeId: null,
+            path: next.graphs[cur] ? s.path : [next.rootGraphId],
+          }
+        }),
+
       onNodesChange: (changes) => {
         const id = get().currentGraphId()
         const g = get().project.graphs[id]
+        const removed = changes.some((c) => c.type === 'remove')
         set((s) => ({
+          ...(removed ? snap(s) : {}),
           project: writeGraph(s.project, id, {
             nodes: applyNodeChanges(changes, g.nodes) as ArchNode[],
           }),
@@ -237,7 +289,9 @@ export const useStore = create<AppState>()(
       onEdgesChange: (changes) => {
         const id = get().currentGraphId()
         const g = get().project.graphs[id]
+        const removed = changes.some((c) => c.type === 'remove')
         set((s) => ({
+          ...(removed ? snap(s) : {}),
           project: writeGraph(s.project, id, {
             edges: applyEdgeChanges(changes, g.edges),
           }),
@@ -251,6 +305,7 @@ export const useStore = create<AppState>()(
           'forward',
         )
         set((s) => ({
+          ...snap(s),
           project: writeGraph(s.project, id, { edges: addEdge(edge, g.edges) }),
           selectedEdgeId: edge.id,
           selectedNodeId: null,
@@ -271,6 +326,7 @@ export const useStore = create<AppState>()(
           data: { label: def.label, kind, fields: [] },
         }
         set((s) => ({
+          ...snap(s),
           project: writeGraph(s.project, id, { nodes: [...g.nodes, node] }),
           selectedNodeId: node.id,
         }))
@@ -291,6 +347,7 @@ export const useStore = create<AppState>()(
         const nodes = g.nodes.filter((n) => n.id !== nodeId)
         const edges = g.edges.filter((e) => e.source !== nodeId && e.target !== nodeId)
         set((s) => ({
+          ...snap(s),
           project: writeGraph(s.project, id, { nodes, edges }),
           selectedNodeId: s.selectedNodeId === nodeId ? null : s.selectedNodeId,
         }))
@@ -300,7 +357,7 @@ export const useStore = create<AppState>()(
         const id = get().currentGraphId()
         const g = get().project.graphs[id]
         const edges = g.edges.map((e) => (e.id === edgeId ? applyDirection(e, direction) : e))
-        set((s) => ({ project: writeGraph(s.project, id, { edges }) }))
+        set((s) => ({ ...snap(s), project: writeGraph(s.project, id, { edges }) }))
       },
 
       setEdgeLabel: (edgeId, label) => {
@@ -317,6 +374,7 @@ export const useStore = create<AppState>()(
         const g = get().project.graphs[id]
         const edges = g.edges.filter((e) => e.id !== edgeId)
         set((s) => ({
+          ...snap(s),
           project: writeGraph(s.project, id, { edges }),
           selectedEdgeId: s.selectedEdgeId === edgeId ? null : s.selectedEdgeId,
         }))
@@ -353,7 +411,13 @@ export const useStore = create<AppState>()(
             graphs: { ...s.project.graphs, [childId]: child },
           })
           const p2 = { ...p, graphs: { ...p.graphs, [parentId]: { ...p.graphs[parentId], nodes } } }
-          return { project: p2, path: [...s.path, childId], selectedNodeId: null, lastNav: 'down' }
+          return {
+            ...snap(s),
+            project: p2,
+            path: [...s.path, childId],
+            selectedNodeId: null,
+            lastNav: 'down',
+          }
         })
       },
 
@@ -361,6 +425,7 @@ export const useStore = create<AppState>()(
         const id = get().currentGraphId()
         const g = get().project.graphs[id]
         set((s) => ({
+          ...snap(s),
           project: writeGraph(s.project, id, {
             nodes: [...g.nodes, ...newNodes],
             edges: [...g.edges, ...newEdges],
