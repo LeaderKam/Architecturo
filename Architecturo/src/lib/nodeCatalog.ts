@@ -22,11 +22,15 @@ import {
   Zap,
   Table2,
   Component,
+  Building2,
+  Layers,
+  Split,
+  Network,
   type LucideIcon,
 } from 'lucide-react'
 import type { NodeKind } from '../types'
 
-export type NodeCategory = 'Générique' | 'Intégration' | 'ServiceNow'
+export type NodeCategory = 'Générique' | 'Intégration' | 'CMDB' | 'ServiceNow'
 
 export interface NodeKindDef {
   kind: NodeKind
@@ -113,6 +117,32 @@ export const NODE_CATALOG: Record<NodeKind, NodeKindDef> = {
     hint: 'Source de données d\'import',
   },
 
+  // ---------------- CMDB (classes de CI) ----------------
+  businessService: {
+    kind: 'businessService', label: 'Service métier', category: 'CMDB', color: '#f59e0b', icon: Building2,
+    hint: 'Business Service (cmdb_ci_service)',
+  },
+  appService: {
+    kind: 'appService', label: 'Service applicatif', category: 'CMDB', color: '#a78bfa', icon: Layers,
+    hint: 'Application Service (svc_ci_assoc)',
+  },
+  server: {
+    kind: 'server', label: 'Serveur / Hôte', category: 'CMDB', color: '#60a5fa', icon: Server,
+    hint: 'Serveur (cmdb_ci_server)',
+  },
+  cluster: {
+    kind: 'cluster', label: 'Cluster', category: 'CMDB', color: '#818cf8', icon: Boxes,
+    hint: 'Groupe de ressources (cmdb_ci_cluster)',
+  },
+  loadBalancer: {
+    kind: 'loadBalancer', label: 'Load Balancer', category: 'CMDB', color: '#2dd4bf', icon: Split,
+    hint: 'Répartiteur de charge (cmdb_ci_lb)',
+  },
+  networkGear: {
+    kind: 'networkGear', label: 'Équipement réseau', category: 'CMDB', color: '#34d399', icon: Network,
+    hint: 'Switch / routeur / firewall (cmdb_ci_netgear)',
+  },
+
   // ---------------- ServiceNow ----------------
   restMessage: {
     kind: 'restMessage', label: 'REST Message', category: 'ServiceNow', color: '#34d399', icon: Send,
@@ -142,7 +172,7 @@ export const NODE_CATALOG: Record<NodeKind, NodeKindDef> = {
 
 export const NODE_KINDS = Object.values(NODE_CATALOG)
 
-export const CATEGORY_ORDER: NodeCategory[] = ['Générique', 'Intégration', 'ServiceNow']
+export const CATEGORY_ORDER: NodeCategory[] = ['Générique', 'Intégration', 'CMDB', 'ServiceNow']
 
 /** Types regroupés par catégorie, dans l'ordre d'affichage. */
 export const NODE_KINDS_BY_CATEGORY: { category: NodeCategory; kinds: NodeKindDef[] }[] =

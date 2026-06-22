@@ -21,6 +21,13 @@ export type NodeKind =
   | 'integration'
   | 'webhook'
   | 'dataSource'
+  // --- CMDB (classes de CI) ---
+  | 'businessService'
+  | 'appService'
+  | 'server'
+  | 'cluster'
+  | 'loadBalancer'
+  | 'networkGear'
   // --- ServiceNow ---
   | 'restMessage'
   | 'scriptedRest'

@@ -22,6 +22,7 @@ import type {
 } from './types'
 import { kindDef } from './lib/nodeCatalog'
 import { sampleProject } from './data/sampleProject'
+import { cmdbProject } from './data/cmdbProject'
 
 function now() {
   return new Date().toISOString()
@@ -139,6 +140,7 @@ function snap(s: { past: Project[]; project: Project }) {
 }
 
 const initialProject = sampleProject()
+const initialCmdb = cmdbProject()
 
 export const useStore = create<AppState>()(
   persist(
@@ -151,7 +153,7 @@ export const useStore = create<AppState>()(
       lastNav: 'down',
       past: [],
       future: [],
-      library: { [initialProject.id]: initialProject },
+      library: { [initialProject.id]: initialProject, [initialCmdb.id]: initialCmdb },
 
       currentGraphId: () => {
         const { path, project } = get()

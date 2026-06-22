@@ -5,6 +5,7 @@ import {
   Download,
   FilePlus2,
   Layers,
+  Network,
   PlayCircle,
   Trash2,
   Upload,
@@ -13,6 +14,7 @@ import { useReactFlow } from '@xyflow/react'
 import { useStore } from '../store'
 import { exportProject, importProjectFromFile } from '../lib/io'
 import { runGuidedTour } from '../lib/demo'
+import { cmdbProject } from '../data/cmdbProject'
 import type { Project } from '../types'
 
 function stats(p: Project) {
@@ -75,6 +77,12 @@ export function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadProject(cmdbProject())}
+              className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-[12px] font-medium text-slate-300 transition-colors hover:bg-panel-2"
+            >
+              <Network size={15} /> Cartographie CMDB
+            </button>
             <button
               onClick={() => runGuidedTour({ fitView, setCenter })}
               className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-3 py-2 text-[12px] font-medium text-white transition-opacity hover:opacity-90"
