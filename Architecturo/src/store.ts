@@ -89,6 +89,8 @@ interface AppState {
   // --- navigation / drill-down ---
   enterGraph: (graphId: string) => void
   goToPathIndex: (index: number) => void
+  /** Va jusqu'au graphe contenant le nœud (reconstruit le chemin) et le sélectionne. */
+  revealNode: (graphId: string, nodeId: string) => void
 
   // --- historique ---
   undo: () => void
@@ -242,6 +244,27 @@ export const useStore = create<AppState>()(
           selectedEdgeId: null,
           lastNav: index < s.path.length - 1 ? 'up' : s.lastNav,
         })),
+
+      revealNode: (graphId, nodeId) =>
+        set((s) => {
+          const graphs = s.project.graphs
+          const chain: string[] = []
+          const seen = new Set<string>()
+          let cur: string | undefined = graphId
+          while (cur && graphs[cur] && !seen.has(cur)) {
+            seen.add(cur)
+            chain.unshift(cur)
+            cur = graphs[cur].parentGraphId
+          }
+          const path = chain.length ? chain : [s.project.rootGraphId]
+          return {
+            path,
+            selectedNodeId: nodeId,
+            selectedEdgeId: null,
+            view: 'editor',
+            lastNav: 'down',
+          }
+        }),
 
       beginDrag: () => set((s) => snap(s)),
 

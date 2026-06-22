@@ -58,10 +58,12 @@ npm run dev
    et libellé.
 6. **Plonger (dive deep)** : double-cliquez sur un objet pour ouvrir/créer sa
    **vue détaillée**. Le fil d'Ariane en haut permet de remonter.
-7. **Agent** : décrivez une intégration en langage naturel, il génère les composants.
-8. **Exporter** : menu *Exporter* → **JSON**, **PNG** ou **SVG** (image du schéma).
-9. **Annuler / Refaire** : boutons de la barre d'outils ou `Ctrl/⌘+Z` et `Ctrl/⌘+Maj+Z`.
-10. **Partager** : import `.json` ou lien encodé. Sauvegarde automatique (localStorage).
+7. **Rechercher** : champ de recherche en haut (ou `Ctrl/⌘+K`) — retrouve un objet
+   dans **tous les niveaux**, saute à sa vue et le centre.
+8. **Agent** : décrivez une intégration en langage naturel, il génère les composants.
+9. **Exporter** : menu *Exporter* → **JSON**, **PNG** ou **SVG** (image du schéma).
+10. **Annuler / Refaire** : boutons de la barre d'outils ou `Ctrl/⌘+Z` et `Ctrl/⌘+Maj+Z`.
+11. **Partager** : import `.json` ou lien encodé. Sauvegarde automatique (localStorage).
 
 > Le bouton **« Aide »** dans la barre d'outils rouvre ce guide à tout moment.
 

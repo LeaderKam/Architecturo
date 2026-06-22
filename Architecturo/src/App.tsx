@@ -4,6 +4,7 @@ import { Toolbar } from './components/Toolbar'
 import { Palette } from './components/Palette'
 import { Inspector } from './components/Inspector'
 import { Breadcrumb } from './components/Breadcrumb'
+import { SearchBox } from './components/SearchBox'
 import { AgentPanel } from './agent/AgentPanel'
 import { HelpModal } from './components/HelpModal'
 import { Dashboard } from './components/Dashboard'
@@ -58,9 +59,12 @@ export default function App() {
         <main className="relative min-w-0 flex-1">
           <div className="absolute left-0 right-0 top-0 z-10 flex items-center gap-3 border-b border-line bg-panel/80 px-4 py-2 backdrop-blur">
             <Breadcrumb />
-            <span className="ml-auto text-[11px] text-slate-500">
-              {currentGraph.nodes.length} objets · {currentGraph.edges.length} liens
-            </span>
+            <div className="ml-auto flex items-center gap-3">
+              <span className="hidden text-[11px] text-slate-500 sm:inline">
+                {currentGraph.nodes.length} objets · {currentGraph.edges.length} liens
+              </span>
+              <SearchBox />
+            </div>
           </div>
           <div className="absolute inset-0 pt-[41px]">
             <Canvas />
