@@ -1,0 +1,91 @@
+import {
+  Boxes,
+  AppWindow,
+  Cog,
+  Plug,
+  Database,
+  Inbox,
+  Waypoints,
+  Braces,
+  HardDrive,
+  User,
+  Globe,
+  Cable,
+  Webhook,
+  FileInput,
+  Send,
+  Code2,
+  Workflow,
+  Shuffle,
+  Server,
+  GitBranch,
+  Zap,
+  Table2,
+  Component,
+  Cloud,
+  Lock,
+  Mail,
+  Bell,
+  Cpu,
+  Network,
+  Box,
+  Folder,
+  Key,
+  ShieldCheck,
+  Repeat,
+  Activity,
+  type LucideIcon,
+} from 'lucide-react'
+
+/** Jeu d'icônes sélectionnables par l'utilisateur, indexé par clé stable. */
+export const ICONS: Record<string, LucideIcon> = {
+  boxes: Boxes,
+  app: AppWindow,
+  cog: Cog,
+  plug: Plug,
+  database: Database,
+  inbox: Inbox,
+  waypoints: Waypoints,
+  braces: Braces,
+  harddrive: HardDrive,
+  user: User,
+  globe: Globe,
+  cable: Cable,
+  webhook: Webhook,
+  fileinput: FileInput,
+  send: Send,
+  code: Code2,
+  workflow: Workflow,
+  shuffle: Shuffle,
+  server: Server,
+  branch: GitBranch,
+  zap: Zap,
+  table: Table2,
+  component: Component,
+  cloud: Cloud,
+  lock: Lock,
+  mail: Mail,
+  bell: Bell,
+  cpu: Cpu,
+  network: Network,
+  box: Box,
+  folder: Folder,
+  key: Key,
+  shield: ShieldCheck,
+  repeat: Repeat,
+  activity: Activity,
+}
+
+export const ICON_KEYS = Object.keys(ICONS)
+
+/** Palette de couleurs proposée dans le sélecteur. */
+export const COLOR_SWATCHES = [
+  '#818cf8', '#a78bfa', '#c084fc', '#f472b6', '#fb7185',
+  '#f59e0b', '#facc15', '#34d399', '#2dd4bf', '#22d3ee',
+  '#38bdf8', '#60a5fa', '#94a3b8', '#cbd5e1',
+]
+
+export function iconByKey(key?: string): LucideIcon | null {
+  if (!key) return null
+  return ICONS[key] ?? null
+}
