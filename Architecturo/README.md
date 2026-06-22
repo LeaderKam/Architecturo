@@ -87,6 +87,25 @@ dans le panneau Agent) :
 
 ---
 
+## ☁️ Déploiement (Vercel)
+
+Le projet est prêt pour Vercel (`vercel.json` fourni). Comme l'app vit dans le
+sous-dossier `Architecturo/` du dépôt, indiquez-le comme **Root Directory**.
+
+**Option A — via le tableau de bord (recommandé) :**
+1. [vercel.com](https://vercel.com) → **Add New… → Project** → importer `LeaderKam/Architecturo`.
+2. **Root Directory** : `Architecturo`.
+3. Framework *Vite* détecté automatiquement → **Deploy**.
+   Chaque `git push` redéploie ensuite tout seul.
+
+**Option B — via le CLI :**
+```bash
+npm i -g vercel
+cd Architecturo
+vercel login
+vercel --prod
+```
+
 ## 🧱 Pile technique
 
 React 18 · TypeScript · Vite · [React Flow](https://reactflow.dev) (`@xyflow/react`)

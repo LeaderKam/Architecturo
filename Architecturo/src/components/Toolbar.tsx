@@ -22,7 +22,7 @@ import {
   exportProject,
   importProjectFromFile,
 } from '../lib/io'
-import { exportImage } from '../lib/exportImage'
+import { exportPng } from '../lib/exportImage'
 
 export function Toolbar({
   onOpenAgent,
@@ -40,7 +40,7 @@ export function Toolbar({
   const redo = useStore((s) => s.redo)
   const canUndo = useStore((s) => s.past.length > 0)
   const canRedo = useStore((s) => s.future.length > 0)
-  const { getNodes } = useReactFlow()
+  const rf = useReactFlow()
   const [copied, setCopied] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
@@ -115,8 +115,7 @@ export function Toolbar({
           {exportOpen && (
             <div className="absolute right-0 z-30 mt-1 w-48 animate-scale-in overflow-hidden rounded-lg border border-line bg-panel-2 py-1 shadow-panel">
               <ExportItem icon={FileJson} label="JSON (.json)" onClick={() => { exportProject(project); setExportOpen(false) }} />
-              <ExportItem icon={FileImage} label="Image PNG (.png)" onClick={() => { exportImage('png', getNodes(), project.name); setExportOpen(false) }} />
-              <ExportItem icon={FileImage} label="Image vectorielle (.svg)" onClick={() => { exportImage('svg', getNodes(), project.name); setExportOpen(false) }} />
+              <ExportItem icon={FileImage} label="Image PNG (.png)" onClick={() => { exportPng(rf, project.name); setExportOpen(false) }} />
             </div>
           )}
         </div>
