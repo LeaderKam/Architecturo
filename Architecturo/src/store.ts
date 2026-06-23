@@ -353,9 +353,10 @@ export const useStore = create<AppState>()(
         const g = get().project.graphs[id]
         const def = kindDef(kind)
         const isZone = kind === 'zone'
+        const type = isZone ? 'zone' : kind === 'integration' ? 'integration' : 'arch'
         const node: ArchNode = {
           id: `n_${nanoid(6)}`,
-          type: isZone ? 'zone' : 'arch',
+          type,
           position,
           // La zone est un grand cadre posé derrière les objets.
           ...(isZone ? { width: 360, height: 240, zIndex: -1 } : {}),

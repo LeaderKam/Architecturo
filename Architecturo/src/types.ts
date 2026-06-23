@@ -6,7 +6,7 @@ import type { Edge, Node } from '@xyflow/react'
  * - `zone`   : un cadre de regroupement (DMZ, scope, réseau…).
  * L'identité d'un objet vient de son nom/icône/couleur, pas d'un « type » figé.
  */
-export type NodeKind = 'object' | 'zone'
+export type NodeKind = 'object' | 'integration' | 'zone'
 
 /** Sens d'un lien entre deux objets. */
 export type EdgeDirection = 'forward' | 'both' | 'none'

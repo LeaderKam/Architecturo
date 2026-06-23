@@ -1,4 +1,4 @@
-import { Box, Frame, type LucideIcon } from 'lucide-react'
+import { Box, Cable, Frame, type LucideIcon } from 'lucide-react'
 import type { NodeKind } from '../types'
 
 export type NodeCategory = 'Formes'
@@ -22,6 +22,10 @@ export const NODE_CATALOG: Record<NodeKind, NodeKindDef> = {
   object: {
     kind: 'object', label: 'Objet', category: 'Formes', color: '#818cf8', icon: Box,
     hint: 'Une carte — choisissez son nom, son icône et sa couleur',
+  },
+  integration: {
+    kind: 'integration', label: 'Intégration', category: 'Formes', color: '#22d3ee', icon: Cable,
+    hint: 'Flux d\'échange entre systèmes — forme hexagonale distincte',
   },
   zone: {
     kind: 'zone', label: 'Zone / Groupe', category: 'Formes', color: '#64748b', icon: Frame,

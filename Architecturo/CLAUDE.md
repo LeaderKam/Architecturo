@@ -56,8 +56,10 @@ src/
     Breadcrumb.tsx    fil d'Ariane entre niveaux
     Dashboard.tsx     tableau de bord : liste des schémas (stats) + démo animée
     HelpModal.tsx     guide de prise en main in-app
-    nodes/ArchNode.tsx  rendu d'un nœud (carte) + 4 handles (connexions multi-côtés)
+    nodes/ArchNode.tsx  rendu d'un objet (carte) + 4 handles + NodeResizer
+    nodes/IntegrationNode.tsx  rendu hexagonal d'une intégration (forme distincte) + resizer
     nodes/ZoneNode.tsx  cadre « zone/groupe » redimensionnable (DMZ, scope), derrière les objets
+    edges/FloatingEdge.tsx  lien flottant (s'ancre au meilleur côté) + floating.ts (calculs)
   agent/
     config.ts         providers (local / Claude / compatible OpenAI) + clé, localStorage
     builder.ts        génération : heuristique locale OU appel LLM (claude-opus-4-8)
@@ -71,10 +73,14 @@ src/
 - Un nœud peut porter `data.childGraphId` → c'est le lien drill-down vers un
   sous-graphe. Entrer = `enterGraph(childGraphId)`.
 - La navigation est une **pile** `path: string[]` de graphIds (pour le breadcrumb).
-- Deux formes seulement : `NodeKind = 'object' | 'zone'` (style Excalidraw).
+- Trois formes : `NodeKind = 'object' | 'integration' | 'zone'` (style Excalidraw).
   L'identité d'un objet vient de son **nom / icône / couleur** (data.label/icon/color),
   pas d'un « type » figé. `object` = carte (rendu `ArchNode`, `type:'arch'`),
+  `integration` = hexagone (rendu `IntegrationNode`, `type:'integration'`),
   `zone` = cadre de regroupement (rendu `ZoneNode`, `type:'zone'`).
+  Objets et intégrations sont **redimensionnables** (NodeResizer).
+- Les liens sont rendus **flottants** (`edges/FloatingEdge`) : ils s'ancrent au
+  meilleur côté selon la position des blocs (Canvas mappe tous les edges en `type:'floating'`).
 
 ## 5. Conventions
 

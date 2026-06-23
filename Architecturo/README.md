@@ -48,15 +48,17 @@ npm run dev
 
 1. **Ouvrir l'exemple** ou cliquer sur **« Démo animée »** pour voir la plongée
    macro → intégration → composants en animation.
-2. **Ajouter une forme** : la palette de gauche propose **deux formes** —
-   **Objet** (une carte) et **Zone** (un cadre de regroupement). Glissez-la sur le
-   canvas, ou cliquez dessus.
+2. **Ajouter une forme** : la palette de gauche propose **trois formes** —
+   **Objet** (carte), **Intégration** (hexagone, forme distincte) et **Zone** (cadre
+   de regroupement). Glissez-la sur le canvas, ou cliquez dessus.
 3. **Personnaliser un objet** (style Excalidraw) : cliquez dessus → le panneau de
    droite permet de changer son **nom**, sa **couleur**, son **icône** (large choix),
-   sa description et ses propriétés. C'est l'apparence + le nom qui donnent son sens.
+   sa description et ses propriétés. **Redimensionnez** un bloc en tirant ses poignées
+   (visibles quand il est sélectionné).
 4. **Relier deux objets** : survolez un objet (4 points de connexion apparaissent),
    puis tirez vers un autre — dans n'importe quel sens. On peut **rebrancher** un
-   lien existant en glissant son extrémité vers un autre objet.
+   lien existant en glissant son extrémité. Les liens sont **flottants** : ils se
+   replacent tout seuls du bon côté quand vous déplacez un bloc.
 5. **Régler un lien** : cliquez dessus → sens (unique →, bidirectionnel ↔, sans flèche)
    et libellé.
 6. **Plonger (dive deep)** : double-cliquez sur un objet pour ouvrir/créer sa

@@ -19,8 +19,11 @@ import { kindDef } from '../lib/nodeCatalog'
 import type { ArchEdge, NodeKind } from '../types'
 import { ArchNode } from './nodes/ArchNode'
 import { ZoneNode } from './nodes/ZoneNode'
+import { IntegrationNode } from './nodes/IntegrationNode'
+import { FloatingEdge } from './edges/FloatingEdge'
 
-const nodeTypes = { arch: ArchNode, zone: ZoneNode }
+const nodeTypes = { arch: ArchNode, zone: ZoneNode, integration: IntegrationNode }
+const edgeTypes = { floating: FloatingEdge }
 
 export function Canvas() {
   const graph = useStore((s) => s.currentGraph())
@@ -119,6 +122,9 @@ export function Canvas() {
     }
   }, [graph.id, lastNav])
 
+  // Tous les liens sont rendus « flottants » (s'ancrent au meilleur côté).
+  const edges = useMemo(() => graph.edges.map((e) => ({ ...e, type: 'floating' })), [graph.edges])
+
   const isEmpty = graph.nodes.length === 0
 
   return (
@@ -129,8 +135,9 @@ export function Canvas() {
       >
         <ReactFlow
           nodes={graph.nodes}
-          edges={graph.edges}
+          edges={edges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -147,7 +154,7 @@ export function Canvas() {
           fitView
           proOptions={{ hideAttribution: false }}
           defaultEdgeOptions={{
-            type: 'smoothstep',
+            type: 'floating',
             markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: '#6366f1' },
           }}
           minZoom={0.2}

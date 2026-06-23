@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { Handle, NodeResizer, Position, type NodeProps } from '@xyflow/react'
 import { Layers } from 'lucide-react'
 import { kindDef } from '../../lib/nodeCatalog'
 import { iconByKey } from '../../lib/icons'
@@ -15,7 +15,7 @@ const SIDES = [
 
 const MAX_FIELDS = 4
 
-function ArchNodeInner({ data, selected }: NodeProps) {
+function ArchNodeInner({ data, selected, width, height }: NodeProps) {
   const d = data as ArchNodeData
   const def = kindDef(d.kind)
   // Couleur / icône personnalisées prioritaires, sinon valeurs du type.
@@ -28,17 +28,27 @@ function ArchNodeInner({ data, selected }: NodeProps) {
     d.childGraphId ? (s.project.graphs[d.childGraphId]?.nodes.length ?? 0) : 0,
   )
   const hasDetail = childCount > 0
+  const sized = typeof width === 'number'
 
   return (
     <div
-      className="group relative w-60 rounded-xl bg-panel shadow-node transition-all"
+      className="group relative overflow-hidden rounded-xl bg-panel shadow-node transition-all"
       style={{
+        width: sized ? '100%' : 240,
+        height: typeof height === 'number' ? '100%' : undefined,
         border: `1px solid ${selected ? color : '#2a2f42'}`,
         boxShadow: selected ? `0 0 0 2px ${color}55, 0 8px 24px -6px #000` : undefined,
       }}
     >
+      <NodeResizer
+        color={color}
+        isVisible={!!selected}
+        minWidth={180}
+        minHeight={64}
+        handleStyle={{ width: 9, height: 9, borderRadius: 2 }}
+      />
       <div
-        className="absolute left-0 top-0 h-full w-1 rounded-l-xl"
+        className="absolute left-0 top-0 h-full w-1"
         style={{ background: color }}
       />
 
