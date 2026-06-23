@@ -39,6 +39,7 @@ src/
   lib/autoLayout.ts   agencement automatique en couches (Sugiyama, sans dépendance)
   lib/validate.ts     contrôle « santé » du schéma (isolés, vues vides, liens cassés…)
   lib/cmdbImport.ts   parseur d'export ServiceNow cmdb_rel_ci (JSON/CSV) -> Project
+  lib/overview.ts     aplatit le projet en groupes imbriqués (vue d'ensemble dépliée)
   lib/nodeCatalog.ts  catalogue minimal : 2 formes (object / zone). Le reste
                       (nom/icône/couleur) se personnalise par objet (style Excalidraw)
   lib/icons.ts        large jeu d'icônes sélectionnables (clé stable -> LucideIcon)
@@ -53,6 +54,8 @@ src/
     Inspector.tsx     édition objet (nom/icône/couleur/champs, dupliquer) OU lien
     HealthCheck.tsx   pastille « santé du schéma » (liste les problèmes, clic = y aller)
     CmdbImportModal.tsx  import CMDB : coller/charger un export cmdb_rel_ci -> projet
+    OverviewModal.tsx + nodes/OverviewNodes.tsx  vue d'ensemble dépliée (lecture seule)
+    nodes/GraphThumbnail.tsx  mini-aperçu SVG d'un sous-schéma (sur les objets encapsulés)
     Breadcrumb.tsx    fil d'Ariane entre niveaux
     Dashboard.tsx     tableau de bord : liste des schémas (stats) + démo animée
     HelpModal.tsx     guide de prise en main in-app

@@ -11,6 +11,7 @@ import {
   LayoutGrid,
   Maximize2,
   Network,
+  Layers,
   Redo2,
   Share2,
   Sparkles,
@@ -32,11 +33,13 @@ export function Toolbar({
   onOpenHelp,
   onPresent,
   onImportCmdb,
+  onOverview,
 }: {
   onOpenAgent: () => void
   onOpenHelp: () => void
   onPresent: () => void
   onImportCmdb: () => void
+  onOverview: () => void
 }) {
   const project = useStore((s) => s.project)
   const renameProject = useStore((s) => s.renameProject)
@@ -142,6 +145,7 @@ export function Toolbar({
           label={copied ? 'Copié !' : 'Partager'}
           primary={copied}
         />
+        <TbBtn onClick={onOverview} icon={Layers} label="Tout déplier" title="Vue d'ensemble : tous les niveaux dépliés (lecture seule)" />
         <TbBtn onClick={onPresent} icon={Maximize2} label="Présenter" title="Mode présentation (Échap pour quitter)" />
         <TbBtn onClick={onOpenHelp} icon={HelpCircle} label="Aide" />
         <div className="mx-1 h-6 w-px bg-line" />

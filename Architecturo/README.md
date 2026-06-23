@@ -62,7 +62,10 @@ npm run dev
 5. **Régler un lien** : cliquez dessus → sens (unique →, bidirectionnel ↔, sans flèche)
    et libellé.
 6. **Plonger (dive deep)** : double-cliquez sur un objet pour ouvrir/créer sa
-   **vue détaillée**. Le fil d'Ariane en haut permet de remonter.
+   **vue détaillée**. Un **mini-aperçu** du sous-schéma s'affiche sur l'objet
+   encapsulé. Le fil d'Ariane en haut permet de remonter.
+   Le bouton **« Tout déplier »** ouvre une **vue d'ensemble** (lecture seule) qui
+   affiche d'un coup tous les niveaux imbriqués.
 7. **Regrouper** : posez une **Zone** (redimensionnable) derrière des objets pour
    matérialiser une DMZ, un scope, un datacenter…
 8. **Réorganiser / Dupliquer** : bouton *Réorganiser* (agencement automatique) ;

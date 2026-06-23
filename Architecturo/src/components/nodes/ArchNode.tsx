@@ -5,6 +5,7 @@ import { kindDef } from '../../lib/nodeCatalog'
 import { iconByKey } from '../../lib/icons'
 import { useStore } from '../../store'
 import type { ArchNodeData } from '../../types'
+import { GraphThumbnail } from './GraphThumbnail'
 
 const SIDES = [
   { id: 'top', position: Position.Top },
@@ -24,9 +25,8 @@ function ArchNodeInner({ data, selected, width, height }: NodeProps) {
   const fields = (d.fields ?? []).filter((f) => f.key || f.value)
 
   // La vue détaillée n'est signalée que si le sous-graphe contient des objets.
-  const childCount = useStore((s) =>
-    d.childGraphId ? (s.project.graphs[d.childGraphId]?.nodes.length ?? 0) : 0,
-  )
+  const child = useStore((s) => (d.childGraphId ? s.project.graphs[d.childGraphId] : undefined))
+  const childCount = child?.nodes.length ?? 0
   const hasDetail = childCount > 0
   const sized = typeof width === 'number'
 
@@ -99,14 +99,22 @@ function ArchNodeInner({ data, selected, width, height }: NodeProps) {
         </div>
       )}
 
-      {hasDetail && (
+      {hasDetail && child && (
         <div
-          className="flex items-center gap-1.5 border-t px-4 py-1.5 text-[10px] font-medium"
-          style={{ borderColor: '#2a2f42', color: color }}
+          className="border-t"
+          style={{ borderColor: '#2a2f42' }}
           title="Double-cliquez pour plonger dans la vue détaillée"
         >
-          <Layers size={11} />
-          Vue détaillée · {childCount} {childCount > 1 ? 'composants' : 'composant'}
+          <div className="bg-canvas/60 px-2 pt-1.5">
+            <GraphThumbnail nodes={child.nodes} edges={child.edges} />
+          </div>
+          <div
+            className="flex items-center gap-1.5 px-4 py-1.5 text-[10px] font-medium"
+            style={{ color }}
+          >
+            <Layers size={11} />
+            Vue détaillée · {childCount} {childCount > 1 ? 'composants' : 'composant'}
+          </div>
         </div>
       )}
     </div>
