@@ -14,9 +14,10 @@ import { layoutGraph } from './autoLayout'
  *  - JSON « à plat » : [ { "parent": "...", "child": "...", "type": "..." } ]
  *  - CSV avec en-têtes contenant parent / child / type (+ classes optionnelles).
  *
- * Chaque CI distinct devient un Objet ; chaque relation, un lien orienté
- * parent → enfant étiqueté par le type de relation. Si la classe du CI est
- * fournie (`sys_class_name`), on lui applique une icône + couleur cohérentes.
+ * Deux modes :
+ *  - hiérarchique (défaut) : un CI avec des enfants devient un conteneur avec sa
+ *    vue détaillée (drill-down), récursivement, en suivant le sens parent → enfant ;
+ *  - plat : tout dans une seule vue macro.
  */
 
 interface Relation {
@@ -114,53 +115,87 @@ function extractRelations(text: string): Relation[] {
     .filter((r) => r.parent && r.child)
 }
 
-export interface CmdbImportResult {
-  project: Project
-  ciCount: number
-  relCount: number
+/* -------------------------------------------------------------------------- */
+/*  Index commun (relations -> adjacence, classes, racines)                    */
+/* -------------------------------------------------------------------------- */
+
+interface CmdbIndex {
+  relations: Relation[]
+  names: string[]
+  childrenOf: Map<string, string[]>
+  hasParent: Set<string>
+  ciClass: Map<string, string>
 }
 
-/** Construit un projet Architecturo (une vue macro) à partir d'un export CMDB. */
-export function parseCmdb(text: string, name = 'Import CMDB'): CmdbImportResult {
-  const relations = extractRelations(text)
-  if (relations.length === 0) {
-    throw new Error(
-      'Aucune relation trouvée. Attendu : un export cmdb_rel_ci (JSON ou CSV) avec parent / child / type.',
-    )
+function buildIndex(relations: Relation[]): CmdbIndex {
+  const childrenOf = new Map<string, string[]>()
+  const hasParent = new Set<string>()
+  const ciClass = new Map<string, string>()
+  const names = new Set<string>()
+  for (const r of relations) {
+    names.add(r.parent)
+    names.add(r.child)
+    if (r.parentClass && !ciClass.has(r.parent)) ciClass.set(r.parent, r.parentClass)
+    if (r.childClass && !ciClass.has(r.child)) ciClass.set(r.child, r.childClass)
+    const kids = childrenOf.get(r.parent) ?? []
+    if (!kids.includes(r.child)) kids.push(r.child)
+    childrenOf.set(r.parent, kids)
+    hasParent.add(r.child)
   }
+  return { relations, names: [...names], childrenOf, hasParent, ciClass }
+}
 
-  const nodeByName = new Map<string, ArchNode>()
-  const ensure = (label: string, cls?: string): ArchNode => {
-    const existing = nodeByName.get(label)
-    if (existing) {
-      // Complète le style si on découvre la classe plus tard.
-      if (cls && !existing.data.color) Object.assign(existing.data, styleForClass(cls))
-      return existing
-    }
+/* -------------------------------------------------------------------------- */
+/*  Construction des graphes                                                   */
+/* -------------------------------------------------------------------------- */
+
+interface Built {
+  graphs: Record<string, Graph>
+  rootGraphId: string
+  ciCount: number
+  relCount: number
+  levels: number
+}
+
+/** Un graphe = des membres (par nom) + tous les liens internes à ces membres. */
+function makeGraph(
+  idx: CmdbIndex,
+  id: string,
+  title: string,
+  memberNames: string[],
+  parentGraphId: string | undefined,
+  childGraphIdOf: Map<string, string | undefined>,
+): Graph {
+  const members = [...new Set(memberNames)]
+  const idByName = new Map<string, string>()
+  const nodes: ArchNode[] = members.map((label) => {
     const node: ArchNode = {
       id: `n_${nanoid(6)}`,
       type: 'arch',
       position: { x: 0, y: 0 },
-      data: { label, kind: 'object', fields: [], ...styleForClass(cls) },
+      data: { label, kind: 'object', fields: [], ...styleForClass(idx.ciClass.get(label)) },
     }
-    nodeByName.set(label, node)
+    const childGid = childGraphIdOf.get(label)
+    if (childGid) node.data.childGraphId = childGid
+    idByName.set(label, node.id)
     return node
-  }
+  })
 
+  const memberSet = new Set(members)
   const edges: ArchEdge[] = []
   const seen = new Set<string>()
-  for (const r of relations) {
-    const p = ensure(r.parent, r.parentClass)
-    const c = ensure(r.child, r.childClass)
-    const key = `${p.id}->${c.id}:${r.type ?? ''}`
+  for (const r of idx.relations) {
+    if (r.parent === r.child) continue
+    if (!memberSet.has(r.parent) || !memberSet.has(r.child)) continue
+    const key = `${r.parent}->${r.child}:${r.type ?? ''}`
     if (seen.has(key)) continue
     seen.add(key)
     edges.push(
       applyDirection(
         {
           id: `e_${nanoid(6)}`,
-          source: p.id,
-          target: c.id,
+          source: idByName.get(r.parent)!,
+          target: idByName.get(r.child)!,
           label: relLabel(r.type),
           animated: true,
           type: 'smoothstep',
@@ -170,20 +205,102 @@ export function parseCmdb(text: string, name = 'Import CMDB'): CmdbImportResult 
     )
   }
 
-  // Agencement automatique en couches (respecte le sens des relations).
-  const nodes = layoutGraph([...nodeByName.values()], edges)
+  return { id, title, parentGraphId, nodes: layoutGraph(nodes, edges), edges }
+}
 
-  const rootId = `g_${nanoid(6)}`
+/** Mode hiérarchique : racines en macro, chaque CI à enfants ouvre sa vue détaillée. */
+function buildHierarchy(idx: CmdbIndex): Built | null {
+  const roots = idx.names.filter((n) => !idx.hasParent.has(n))
+  if (roots.length === 0) return null // tout est cyclique -> on retombera en mode plat
+
+  const graphs: Record<string, Graph> = {}
+  const detailIdByCi = new Map<string, string>() // partage le sous-graphe d'un CI
+  const building = new Set<string>() // détection de cycle
+  let maxDepth = 1
+
+  // Renvoie l'id du sous-graphe « détail » d'un CI (CI + ses enfants), ou undefined.
+  const detailFor = (ci: string, parentGid: string, depth: number): string | undefined => {
+    const kids = idx.childrenOf.get(ci)
+    if (!kids || kids.length === 0) return undefined
+    if (detailIdByCi.has(ci)) return detailIdByCi.get(ci)
+    if (building.has(ci)) return undefined // cycle : on coupe le drill-down
+    building.add(ci)
+    maxDepth = Math.max(maxDepth, depth + 1)
+    const gid = `g_${nanoid(6)}`
+    detailIdByCi.set(ci, gid)
+
+    const members = [ci, ...kids]
+    const childGraphIdOf = new Map<string, string | undefined>()
+    for (const m of members) {
+      if (m === ci) continue // le CI focalisé n'ouvre pas sa propre détail ici
+      childGraphIdOf.set(m, detailFor(m, gid, depth + 1))
+    }
+    graphs[gid] = makeGraph(idx, gid, `${ci} — CI`, members, parentGid, childGraphIdOf)
+    building.delete(ci)
+    return gid
+  }
+
+  const rootGid = `g_${nanoid(6)}`
+  const childGraphIdOf = new Map<string, string | undefined>()
+  for (const r of roots) childGraphIdOf.set(r, detailFor(r, rootGid, 1))
+  graphs[rootGid] = makeGraph(idx, rootGid, 'CMDB — Services & dépendances', roots, undefined, childGraphIdOf)
+
+  return {
+    graphs,
+    rootGraphId: rootGid,
+    ciCount: idx.names.length,
+    relCount: idx.relations.length,
+    levels: maxDepth,
+  }
+}
+
+/** Mode plat : tous les CI et toutes les relations dans une seule vue. */
+function buildFlat(idx: CmdbIndex): Built {
+  const rootGid = `g_${nanoid(6)}`
+  const graph = makeGraph(idx, rootGid, 'CMDB — Relations', idx.names, undefined, new Map())
+  return {
+    graphs: { [rootGid]: graph },
+    rootGraphId: rootGid,
+    ciCount: idx.names.length,
+    relCount: idx.relations.length,
+    levels: 1,
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+export interface CmdbImportResult {
+  project: Project
+  ciCount: number
+  relCount: number
+  levels: number
+}
+
+/** Construit un projet Architecturo à partir d'un export CMDB. */
+export function parseCmdb(
+  text: string,
+  name = 'Import CMDB',
+  opts: { hierarchical?: boolean } = {},
+): CmdbImportResult {
+  const relations = extractRelations(text)
+  if (relations.length === 0) {
+    throw new Error(
+      'Aucune relation trouvée. Attendu : un export cmdb_rel_ci (JSON ou CSV) avec parent / child / type.',
+    )
+  }
+  const idx = buildIndex(relations)
+  const built =
+    opts.hierarchical === false ? buildFlat(idx) : buildHierarchy(idx) ?? buildFlat(idx)
+
   const ts = new Date().toISOString()
-  const root: Graph = { id: rootId, title: 'CMDB — Relations', nodes, edges }
   const project: Project = {
     id: `p_${nanoid(6)}`,
     name,
     version: 1,
-    rootGraphId: rootId,
-    graphs: { [rootId]: root },
+    rootGraphId: built.rootGraphId,
+    graphs: built.graphs,
     createdAt: ts,
     updatedAt: ts,
   }
-  return { project, ciCount: nodeByName.size, relCount: edges.length }
+  return { project, ciCount: built.ciCount, relCount: built.relCount, levels: built.levels }
 }

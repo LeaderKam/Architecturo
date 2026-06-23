@@ -17,6 +17,7 @@ const SAMPLE = `{
 export function CmdbImportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const loadProject = useStore((s) => s.loadProject)
   const [text, setText] = useState('')
+  const [hierarchical, setHierarchical] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -24,8 +25,9 @@ export function CmdbImportModal({ open, onClose }: { open: boolean; onClose: () 
 
   const doImport = (raw: string) => {
     try {
-      const { project, ciCount, relCount } = parseCmdb(raw)
-      project.name = `Import CMDB — ${ciCount} CI / ${relCount} relations`
+      const { project, ciCount, relCount, levels } = parseCmdb(raw, 'Import CMDB', { hierarchical })
+      const niv = levels > 1 ? ` · ${levels} niveaux` : ''
+      project.name = `Import CMDB — ${ciCount} CI / ${relCount} relations${niv}`
       loadProject(project)
       setText('')
       setError(null)
@@ -84,12 +86,23 @@ export function CmdbImportModal({ open, onClose }: { open: boolean; onClose: () 
             </div>
           )}
 
-          <button
-            onClick={() => setText(SAMPLE)}
-            className="text-[11px] text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline"
-          >
-            Insérer un exemple
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setText(SAMPLE)}
+              className="text-[11px] text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline"
+            >
+              Insérer un exemple
+            </button>
+            <label className="flex cursor-pointer items-center gap-2 text-[11px] text-slate-400">
+              <input
+                type="checkbox"
+                checked={hierarchical}
+                onChange={(e) => setHierarchical(e.target.checked)}
+                className="h-3.5 w-3.5 accent-accent"
+              />
+              Générer les niveaux (drill-down par CI)
+            </label>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-line px-5 py-3">

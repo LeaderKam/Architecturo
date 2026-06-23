@@ -123,7 +123,13 @@ ouvre un import dédié : collez (ou chargez) un export de la table
 Chaque CI distinct devient un **Objet**, chaque relation un **lien orienté** étiqueté
 par son type (`Depends on`, `Runs on`…). Si la classe (`sys_class_name`) est fournie,
 l'icône et la couleur sont déduites automatiquement, puis le tout est **agencé**
-en couches. Vous affinez ensuite librement.
+en couches.
+
+**Niveaux (drill-down) automatiques.** Par défaut (case *« Générer les niveaux »*),
+l'import suit le sens **parent → enfant** : les CI racines (sans parent) forment la
+**vue macro**, et chaque CI qui a des enfants ouvre sa **vue détaillée** (ses CI et
+leurs relations), récursivement. Ex. : *Service applicatif* → ses serveurs / LB / BD.
+Décochez la case pour tout mettre dans une seule vue à plat.
 
 > 💡 Sans export sous la main, l'**Agent** génère une première trame.
 
@@ -204,7 +210,7 @@ Plus de détails dans [`CLAUDE.md`](./CLAUDE.md) (carte du code) et
 - [x] Annuler/refaire, recherche multi-niveaux, agencement automatique
 - [x] Zones de regroupement (DMZ, scope, datacenter)
 - [x] Contrôle « santé » du schéma
-- [x] Import CMDB (`cmdb_rel_ci`) — JSON/CSV collé ou fichier, stylé par classe de CI
+- [x] Import CMDB (`cmdb_rel_ci`) — JSON/CSV, stylé par classe, **niveaux drill-down** auto
 - [ ] Brancher l'agent sur l'API Claude via un backend/proxy (clés côté serveur)
 - [ ] Connexion directe à l'API ServiceNow (sans copier/coller l'export)
 - [ ] Import depuis l'API ServiceNow (REST Messages / Scripted REST réels)
