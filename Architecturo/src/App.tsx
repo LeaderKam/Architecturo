@@ -7,6 +7,7 @@ import { Inspector } from './components/Inspector'
 import { Breadcrumb } from './components/Breadcrumb'
 import { SearchBox } from './components/SearchBox'
 import { HealthCheck } from './components/HealthCheck'
+import { CmdbImportModal } from './components/CmdbImportModal'
 import { AgentPanel } from './agent/AgentPanel'
 import { HelpModal } from './components/HelpModal'
 import { Dashboard } from './components/Dashboard'
@@ -22,6 +23,7 @@ export default function App() {
   const duplicateNode = useStore((s) => s.duplicateNode)
   const [agentOpen, setAgentOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [cmdbOpen, setCmdbOpen] = useState(false)
   const [presenting, setPresenting] = useState(false)
 
   // Au démarrage : charger un projet partagé via l'URL, s'il existe.
@@ -69,6 +71,7 @@ export default function App() {
           onOpenAgent={() => setAgentOpen(true)}
           onOpenHelp={() => setHelpOpen(true)}
           onPresent={() => setPresenting(true)}
+          onImportCmdb={() => setCmdbOpen(true)}
         />
       )}
 
@@ -108,6 +111,7 @@ export default function App() {
           </div>
           <AgentPanel open={agentOpen} onClose={() => setAgentOpen(false)} />
           <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+          <CmdbImportModal open={cmdbOpen} onClose={() => setCmdbOpen(false)} />
         </main>
 
         {/* Inspecteur droite */}

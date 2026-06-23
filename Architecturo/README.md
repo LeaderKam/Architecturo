@@ -112,9 +112,20 @@ de « type » figé : la nature d'un CI se lit à son apparence et à ses relati
 4. **Convention couleur/icône = classe de CI.** Gardez une couleur stable par classe ;
    la pastille **Santé** repère les CI non reliés ou les vues détaillées vides.
 
-> 🔜 L'import direct depuis ServiceNow (`cmdb_rel_ci`, relations *Depends on / Runs on*)
-> est prévu (voir *Roadmap*). En attendant, l'**Agent** génère une première trame que
-> vous affinez.
+**Import automatique (`cmdb_rel_ci`).** Le bouton **« CMDB »** de la barre d'outils
+ouvre un import dédié : collez (ou chargez) un export de la table
+`cmdb_rel_ci` et le schéma se construit tout seul.
+
+- **JSON** de l'API REST :
+  `…/api/now/table/cmdb_rel_ci?sysparm_display_value=true&sysparm_fields=parent,child,type,parent.sys_class_name,child.sys_class_name`
+- **CSV** avec des colonnes *parent / child / type* (+ classes optionnelles).
+
+Chaque CI distinct devient un **Objet**, chaque relation un **lien orienté** étiqueté
+par son type (`Depends on`, `Runs on`…). Si la classe (`sys_class_name`) est fournie,
+l'icône et la couleur sont déduites automatiquement, puis le tout est **agencé**
+en couches. Vous affinez ensuite librement.
+
+> 💡 Sans export sous la main, l'**Agent** génère une première trame.
 
 ---
 
@@ -171,6 +182,7 @@ src/
     icons.ts            large jeu d'icônes + couleurs sélectionnables
     autoLayout.ts       agencement automatique en couches
     validate.ts         contrôle « santé » du schéma
+    cmdbImport.ts       parseur d'export cmdb_rel_ci (JSON/CSV) -> projet
     io.ts               export / import / partage
     demo.ts             visite guidée animée
   data/
@@ -192,7 +204,8 @@ Plus de détails dans [`CLAUDE.md`](./CLAUDE.md) (carte du code) et
 - [x] Annuler/refaire, recherche multi-niveaux, agencement automatique
 - [x] Zones de regroupement (DMZ, scope, datacenter)
 - [x] Contrôle « santé » du schéma
+- [x] Import CMDB (`cmdb_rel_ci`) — JSON/CSV collé ou fichier, stylé par classe de CI
 - [ ] Brancher l'agent sur l'API Claude via un backend/proxy (clés côté serveur)
-- [ ] Import CMDB depuis l'API ServiceNow (`cmdb_rel_ci`, relations Depends on / Runs on)
+- [ ] Connexion directe à l'API ServiceNow (sans copier/coller l'export)
 - [ ] Import depuis l'API ServiceNow (REST Messages / Scripted REST réels)
 - [ ] Collaboration temps réel

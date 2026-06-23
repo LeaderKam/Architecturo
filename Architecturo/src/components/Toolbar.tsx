@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Check,
   ChevronDown,
+  Database,
   Download,
   FileJson,
   FileImage,
@@ -30,10 +31,12 @@ export function Toolbar({
   onOpenAgent,
   onOpenHelp,
   onPresent,
+  onImportCmdb,
 }: {
   onOpenAgent: () => void
   onOpenHelp: () => void
   onPresent: () => void
+  onImportCmdb: () => void
 }) {
   const project = useStore((s) => s.project)
   const renameProject = useStore((s) => s.renameProject)
@@ -113,6 +116,7 @@ export function Toolbar({
         <div className="mx-1 h-6 w-px bg-line" />
         <TbBtn onClick={newProject} icon={FilePlus2} label="Nouveau" />
         <TbBtn onClick={handleImport} icon={Upload} label="Importer" />
+        <TbBtn onClick={onImportCmdb} icon={Database} label="CMDB" title="Importer une CMDB (cmdb_rel_ci)" />
 
         {/* Menu d'export */}
         <div className="relative" ref={exportRef}>
