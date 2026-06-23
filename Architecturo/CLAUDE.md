@@ -36,16 +36,19 @@ src/
                       historique undo/redo (past/future + snap() sur ops structurelles)
   lib/demo.ts         visite guidée animée (3 niveaux) via useReactFlow().fitView
   lib/exportImage.ts  export PNG/SVG de la vue courante (html-to-image)
+  lib/autoLayout.ts   agencement automatique en couches (Sugiyama, sans dépendance)
+  lib/validate.ts     contrôle « santé » du schéma (isolés, vues vides, liens cassés…)
   lib/nodeCatalog.ts  catalogue des types d'objets, groupés par CATÉGORIE
                       (Générique / Intégration / ServiceNow) — pas que ServiceNow
   lib/io.ts           export / import / partage (JSON + lien base64)
   data/sampleProject.ts  projet d'exemple ServiceNow (macro + détails)
   components/
-    Canvas.tsx        React Flow + drag&drop + double-clic = drill-down
-                      ConnectionMode.Loose + markerEnd (flèches de direction)
-    Toolbar.tsx       barre du haut (new/import/export/share/aide/agent)
+    Canvas.tsx        React Flow + drag&drop + double-clic = drill-down ;
+                      onReconnect (rebrancher un lien) ; markerEnd (flèches)
+    Toolbar.tsx       barre du haut (réorganiser/new/import/export/share/présenter/aide/agent)
     Palette.tsx       palette de types groupée par catégorie
-    Inspector.tsx     édition objet OU lien (sens + libellé) selon la sélection
+    Inspector.tsx     édition objet (dupliquer) OU lien (sens + libellé + rebranchement)
+    HealthCheck.tsx   pastille « santé du schéma » (liste les problèmes, clic = y aller)
     Breadcrumb.tsx    fil d'Ariane entre niveaux
     Dashboard.tsx     tableau de bord : liste des schémas (stats) + démo animée
     HelpModal.tsx     guide de prise en main in-app

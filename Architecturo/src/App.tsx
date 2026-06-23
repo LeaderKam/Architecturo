@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { Minimize2 } from 'lucide-react'
 import { Canvas } from './components/Canvas'
 import { Toolbar } from './components/Toolbar'
 import { Palette } from './components/Palette'
 import { Inspector } from './components/Inspector'
 import { Breadcrumb } from './components/Breadcrumb'
 import { SearchBox } from './components/SearchBox'
+import { HealthCheck } from './components/HealthCheck'
 import { AgentPanel } from './agent/AgentPanel'
 import { HelpModal } from './components/HelpModal'
 import { Dashboard } from './components/Dashboard'
@@ -17,8 +19,10 @@ export default function App() {
   const view = useStore((s) => s.view)
   const undo = useStore((s) => s.undo)
   const redo = useStore((s) => s.redo)
+  const duplicateNode = useStore((s) => s.duplicateNode)
   const [agentOpen, setAgentOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [presenting, setPresenting] = useState(false)
 
   // Au démarrage : charger un projet partagé via l'URL, s'il existe.
   useEffect(() => {
@@ -29,31 +33,52 @@ export default function App() {
     }
   }, [loadProject])
 
-  // Raccourcis Annuler / Refaire (hors saisie dans un champ).
+  // Raccourcis clavier (hors saisie dans un champ).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && presenting) {
+        setPresenting(false)
+        return
+      }
       const t = e.target as HTMLElement
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
-      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return
-      e.preventDefault()
-      if (e.shiftKey) redo()
-      else undo()
+      if (!(e.ctrlKey || e.metaKey)) return
+      const k = e.key.toLowerCase()
+      if (k === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+      } else if (k === 'd') {
+        const id = useStore.getState().selectedNodeId
+        if (id) {
+          e.preventDefault()
+          duplicateNode(id)
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [undo, redo])
+  }, [undo, redo, duplicateNode, presenting])
 
   if (view === 'dashboard') return <Dashboard />
 
   return (
     <div className="flex h-screen animate-fade-in flex-col bg-canvas">
-      <Toolbar onOpenAgent={() => setAgentOpen(true)} onOpenHelp={() => setHelpOpen(true)} />
+      {!presenting && (
+        <Toolbar
+          onOpenAgent={() => setAgentOpen(true)}
+          onOpenHelp={() => setHelpOpen(true)}
+          onPresent={() => setPresenting(true)}
+        />
+      )}
 
       <div className="flex min-h-0 flex-1">
         {/* Palette gauche */}
-        <aside className="w-60 shrink-0 border-r border-line bg-panel">
-          <Palette />
-        </aside>
+        {!presenting && (
+          <aside className="w-60 shrink-0 border-r border-line bg-panel">
+            <Palette />
+          </aside>
+        )}
 
         {/* Zone centrale */}
         <main className="relative min-w-0 flex-1">
@@ -63,7 +88,19 @@ export default function App() {
               <span className="hidden text-[11px] text-slate-500 sm:inline">
                 {currentGraph.nodes.length} objets · {currentGraph.edges.length} liens
               </span>
-              <SearchBox />
+              {presenting ? (
+                <button
+                  onClick={() => setPresenting(false)}
+                  className="flex items-center gap-1.5 rounded-lg border border-line px-2 py-1 text-[11px] font-medium text-slate-300 hover:bg-panel-2 hover:text-slate-100"
+                >
+                  <Minimize2 size={13} /> Quitter (Échap)
+                </button>
+              ) : (
+                <>
+                  <HealthCheck />
+                  <SearchBox />
+                </>
+              )}
             </div>
           </div>
           <div className="absolute inset-0 pt-[41px]">
@@ -74,9 +111,11 @@ export default function App() {
         </main>
 
         {/* Inspecteur droite */}
-        <aside className="w-72 shrink-0 border-l border-line bg-panel">
-          <Inspector />
-        </aside>
+        {!presenting && (
+          <aside className="w-72 shrink-0 border-l border-line bg-panel">
+            <Inspector />
+          </aside>
+        )}
       </div>
     </div>
   )

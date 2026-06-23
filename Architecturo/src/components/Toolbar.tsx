@@ -8,6 +8,8 @@ import {
   FilePlus2,
   HelpCircle,
   LayoutGrid,
+  Maximize2,
+  Network,
   Redo2,
   Share2,
   Sparkles,
@@ -27,9 +29,11 @@ import { exportPng } from '../lib/exportImage'
 export function Toolbar({
   onOpenAgent,
   onOpenHelp,
+  onPresent,
 }: {
   onOpenAgent: () => void
   onOpenHelp: () => void
+  onPresent: () => void
 }) {
   const project = useStore((s) => s.project)
   const renameProject = useStore((s) => s.renameProject)
@@ -38,9 +42,16 @@ export function Toolbar({
   const goDashboard = useStore((s) => s.goDashboard)
   const undo = useStore((s) => s.undo)
   const redo = useStore((s) => s.redo)
+  const autoLayout = useStore((s) => s.autoLayout)
   const canUndo = useStore((s) => s.past.length > 0)
   const canRedo = useStore((s) => s.future.length > 0)
   const rf = useReactFlow()
+
+  const handleLayout = () => {
+    autoLayout()
+    // Laisse React Flow appliquer les nouvelles positions avant de recadrer.
+    setTimeout(() => rf.fitView({ padding: 0.2, duration: 400 }), 0)
+  }
   const [copied, setCopied] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const exportRef = useRef<HTMLDivElement>(null)
@@ -98,6 +109,7 @@ export function Toolbar({
       <div className="flex items-center gap-1.5">
         <TbBtn onClick={undo} icon={Undo2} label="Annuler" iconOnly disabled={!canUndo} title="Annuler (Ctrl/⌘+Z)" />
         <TbBtn onClick={redo} icon={Redo2} label="Refaire" iconOnly disabled={!canRedo} title="Refaire (Ctrl/⌘+Maj+Z)" />
+        <TbBtn onClick={handleLayout} icon={Network} label="Réorganiser" title="Réorganiser le schéma (agencement automatique)" />
         <div className="mx-1 h-6 w-px bg-line" />
         <TbBtn onClick={newProject} icon={FilePlus2} label="Nouveau" />
         <TbBtn onClick={handleImport} icon={Upload} label="Importer" />
@@ -126,6 +138,7 @@ export function Toolbar({
           label={copied ? 'Copié !' : 'Partager'}
           primary={copied}
         />
+        <TbBtn onClick={onPresent} icon={Maximize2} label="Présenter" title="Mode présentation (Échap pour quitter)" />
         <TbBtn onClick={onOpenHelp} icon={HelpCircle} label="Aide" />
         <div className="mx-1 h-6 w-px bg-line" />
         <button

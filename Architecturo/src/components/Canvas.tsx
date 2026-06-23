@@ -8,6 +8,7 @@ import {
   MiniMap,
   ReactFlow,
   useReactFlow,
+  type Connection,
   type Edge,
   type EdgeMouseHandler,
   type Node,
@@ -15,7 +16,7 @@ import {
 } from '@xyflow/react'
 import { useStore } from '../store'
 import { kindDef } from '../lib/nodeCatalog'
-import type { NodeKind } from '../types'
+import type { ArchEdge, NodeKind } from '../types'
 import { ArchNode } from './nodes/ArchNode'
 
 const nodeTypes = { arch: ArchNode }
@@ -26,6 +27,7 @@ export function Canvas() {
   const onNodesChange = useStore((s) => s.onNodesChange)
   const onEdgesChange = useStore((s) => s.onEdgesChange)
   const onConnect = useStore((s) => s.onConnect)
+  const reconnectEdge = useStore((s) => s.reconnectEdge)
   const select = useStore((s) => s.select)
   const selectEdge = useStore((s) => s.selectEdge)
   const addNode = useStore((s) => s.addNode)
@@ -66,6 +68,11 @@ export function Canvas() {
   const onEdgeClick: EdgeMouseHandler = useCallback(
     (_, edge: Edge) => selectEdge(edge.id),
     [selectEdge],
+  )
+
+  const onReconnect = useCallback(
+    (oldEdge: Edge, conn: Connection) => reconnectEdge(oldEdge as ArchEdge, conn),
+    [reconnectEdge],
   )
 
   const onPaneClick = useCallback(() => select(null), [select])
@@ -119,6 +126,7 @@ export function Canvas() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onReconnect={onReconnect}
           onNodeClick={onNodeClick}
           onNodeDoubleClick={onNodeDoubleClick}
           onNodeDragStart={beginDrag}

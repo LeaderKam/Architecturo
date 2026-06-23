@@ -1,4 +1,4 @@
-import { ArrowLeftRight, ArrowRight, Layers, Minus, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { ArrowLeftRight, ArrowRight, Copy, Layers, Minus, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useStore } from '../store'
 import { NODE_KINDS, kindDef } from '../lib/nodeCatalog'
@@ -11,6 +11,7 @@ export function Inspector() {
   const graph = useStore((s) => s.currentGraph())
   const updateNodeData = useStore((s) => s.updateNodeData)
   const deleteNode = useStore((s) => s.deleteNode)
+  const duplicateNode = useStore((s) => s.duplicateNode)
   const drillInto = useStore((s) => s.drillInto)
   const select = useStore((s) => s.select)
 
@@ -213,6 +214,12 @@ export function Inspector() {
           {d.childGraphId ? 'Ouvrir la vue détaillée' : 'Créer une vue détaillée'}
         </button>
         <button
+          onClick={() => duplicateNode(node.id)}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-line px-3 py-2 text-[12px] font-medium text-slate-300 transition-colors hover:bg-panel-2 hover:text-slate-100"
+        >
+          <Copy size={14} /> Dupliquer <span className="text-slate-500">(Ctrl/⌘+D)</span>
+        </button>
+        <button
           onClick={() => deleteNode(node.id)}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-line px-3 py-2 text-[12px] font-medium text-slate-400 transition-colors hover:border-rose-500/40 hover:text-rose-400"
         >
@@ -270,6 +277,9 @@ function EdgeInspector({ edgeId }: { edgeId: string }) {
           <span className="px-1.5 text-slate-500">→</span>
           <span className="font-medium text-slate-100">{target}</span>
         </div>
+        <p className="-mt-2 text-[10.5px] leading-relaxed text-slate-500">
+          Astuce : glissez une extrémité du lien sur le canvas vers un autre objet pour le rebrancher.
+        </p>
 
         <Labeled label="Libellé du lien">
           <input

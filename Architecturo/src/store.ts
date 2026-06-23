@@ -5,6 +5,7 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   MarkerType,
+  reconnectEdge as rfReconnectEdge,
   type Connection,
   type EdgeChange,
   type NodeChange,
@@ -21,6 +22,7 @@ import type {
   Project,
 } from './types'
 import { kindDef } from './lib/nodeCatalog'
+import { layoutGraph } from './lib/autoLayout'
 import { sampleProject } from './data/sampleProject'
 import { cmdbProject } from './data/cmdbProject'
 
@@ -110,8 +112,12 @@ interface AppState {
   addNode: (kind: NodeKind, position: XYPosition) => void
   updateNodeData: (id: string, patch: Partial<ArchNodeData>) => void
   deleteNode: (id: string) => void
+  /** Duplique un objet (sans sa vue détaillée) à côté de l'original. */
+  duplicateNode: (id: string) => void
 
   // --- liens ---
+  /** Rebranche un lien existant sur d'autres objets (glisser une extrémité). */
+  reconnectEdge: (oldEdge: ArchEdge, conn: Connection) => void
   setEdgeDirection: (edgeId: string, direction: EdgeDirection) => void
   setEdgeLabel: (edgeId: string, label: string) => void
   deleteEdge: (edgeId: string) => void
@@ -120,6 +126,8 @@ interface AppState {
 
   /** Injecte un ensemble nœuds/arêtes (généré par l'agent) dans le graphe courant. */
   appendToCurrentGraph: (nodes: ArchNode[], edges: ArchEdge[]) => void
+  /** Réorganise automatiquement le graphe courant (agencement en couches). */
+  autoLayout: () => void
 }
 
 function touch(p: Project): Project {
@@ -378,6 +386,51 @@ export const useStore = create<AppState>()(
         }))
       },
 
+      reconnectEdge: (oldEdge, conn) => {
+        const id = get().currentGraphId()
+        const g = get().project.graphs[id]
+        const direction = (oldEdge.data?.direction as EdgeDirection) ?? 'forward'
+        // shouldReplaceId: false -> on garde le même id ; on réapplique le sens
+        // (sinon la flèche markerEnd/markerStart est perdue au rebranchement).
+        const reconnected = rfReconnectEdge(oldEdge, conn, g.edges, {
+          shouldReplaceId: false,
+        }) as ArchEdge[]
+        const edges = reconnected.map((e) =>
+          e.id === oldEdge.id ? applyDirection(e, direction) : e,
+        )
+        set((s) => ({
+          ...snap(s),
+          project: writeGraph(s.project, id, { edges }),
+          selectedEdgeId: oldEdge.id,
+          selectedNodeId: null,
+        }))
+      },
+
+      duplicateNode: (nodeId) => {
+        const id = get().currentGraphId()
+        const g = get().project.graphs[id]
+        const src = g.nodes.find((n) => n.id === nodeId)
+        if (!src) return
+        const copy: ArchNode = {
+          ...src,
+          id: `n_${nanoid(6)}`,
+          position: { x: src.position.x + 36, y: src.position.y + 36 },
+          selected: false,
+          data: {
+            ...src.data,
+            fields: src.data.fields ? src.data.fields.map((f) => ({ ...f })) : [],
+            // La copie ne partage pas la vue détaillée de l'original.
+            childGraphId: undefined,
+          },
+        }
+        set((s) => ({
+          ...snap(s),
+          project: writeGraph(s.project, id, { nodes: [...g.nodes, copy] }),
+          selectedNodeId: copy.id,
+          selectedEdgeId: null,
+        }))
+      },
+
       setEdgeDirection: (edgeId, direction) => {
         const id = get().currentGraphId()
         const g = get().project.graphs[id]
@@ -456,6 +509,14 @@ export const useStore = create<AppState>()(
             edges: [...g.edges, ...newEdges],
           }),
         }))
+      },
+
+      autoLayout: () => {
+        const id = get().currentGraphId()
+        const g = get().project.graphs[id]
+        if (g.nodes.length < 2) return
+        const nodes = layoutGraph(g.nodes, g.edges)
+        set((s) => ({ ...snap(s), project: writeGraph(s.project, id, { nodes }) }))
       },
     }),
     {
