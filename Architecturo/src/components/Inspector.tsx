@@ -1,9 +1,9 @@
 import { ArrowLeftRight, ArrowRight, Copy, Layers, Minus, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { useStore } from '../store'
-import { NODE_KINDS, kindDef } from '../lib/nodeCatalog'
+import { kindDef } from '../lib/nodeCatalog'
 import { COLOR_SWATCHES, ICONS, ICON_KEYS } from '../lib/icons'
-import type { EdgeDirection, FieldEntry, NodeKind } from '../types'
+import type { EdgeDirection, FieldEntry } from '../types'
 
 export function Inspector() {
   const selectedNodeId = useStore((s) => s.selectedNodeId)
@@ -80,20 +80,6 @@ export function Inspector() {
             className="ipt"
             placeholder="Nom de l'objet"
           />
-        </Labeled>
-
-        <Labeled label="Type">
-          <select
-            value={d.kind}
-            onChange={(e) => updateNodeData(node.id, { kind: e.target.value as NodeKind })}
-            className="ipt"
-          >
-            {NODE_KINDS.map((k) => (
-              <option key={k.kind} value={k.kind}>
-                {k.label}
-              </option>
-            ))}
-          </select>
         </Labeled>
 
         {/* Apparence : couleur + icône personnalisées */}

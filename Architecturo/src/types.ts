@@ -1,42 +1,12 @@
 import type { Edge, Node } from '@xyflow/react'
 
-/** Types d'objets d'architecture. Définis/affichés via src/lib/nodeCatalog.ts */
-export type NodeKind =
-  // --- Génériques (toutes plateformes) ---
-  | 'system'
-  | 'application'
-  | 'service'
-  | 'api'
-  | 'database'
-  | 'queue'
-  | 'gateway'
-  | 'function'
-  | 'storage'
-  | 'user'
-  | 'externalSystem'
-  | 'event'
-  | 'table'
-  | 'custom'
-  // --- Disposition ---
-  | 'zone'
-  // --- Intégration ---
-  | 'integration'
-  | 'webhook'
-  | 'dataSource'
-  // --- CMDB (classes de CI) ---
-  | 'businessService'
-  | 'appService'
-  | 'server'
-  | 'cluster'
-  | 'loadBalancer'
-  | 'networkGear'
-  // --- ServiceNow ---
-  | 'restMessage'
-  | 'scriptedRest'
-  | 'businessRule'
-  | 'transformMap'
-  | 'midServer'
-  | 'flow'
+/**
+ * Deux formes seulement (style Excalidraw) :
+ * - `object` : une carte, librement personnalisable (nom, icône, couleur, champs) ;
+ * - `zone`   : un cadre de regroupement (DMZ, scope, réseau…).
+ * L'identité d'un objet vient de son nom/icône/couleur, pas d'un « type » figé.
+ */
+export type NodeKind = 'object' | 'zone'
 
 /** Sens d'un lien entre deux objets. */
 export type EdgeDirection = 'forward' | 'both' | 'none'

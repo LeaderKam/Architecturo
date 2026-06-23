@@ -1,4 +1,5 @@
 import type { ArchNode, Graph, Project } from '../types'
+import { STYLE_PRESET } from './presets'
 
 /**
  * Exemple de cartographie CMDB (style ServiceNow).
@@ -7,18 +8,22 @@ import type { ArchNode, Graph, Project } from '../types'
  *   applicatif et leurs relations (« Dépend de », « Hébergé sur »…).
  */
 
+// `preset` ne pré-remplit que la couleur + l'icône : chaque nœud reste un `object`.
 const n = (
   id: string,
-  kind: ArchNode['data']['kind'],
+  preset: string,
   label: string,
   position: { x: number; y: number },
   extra: Partial<ArchNode['data']> = {},
-): ArchNode => ({
-  id,
-  type: 'arch',
-  position,
-  data: { label, kind, fields: [], ...extra },
-})
+): ArchNode => {
+  const p = STYLE_PRESET[preset]
+  return {
+    id,
+    type: 'arch',
+    position,
+    data: { label, kind: 'object', color: p?.color, icon: p?.icon, fields: [], ...extra },
+  }
+}
 
 const MACRO = 'g_cmdb_macro'
 const WEB_CIS = 'g_cmdb_web_cis'

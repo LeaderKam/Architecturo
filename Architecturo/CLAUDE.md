@@ -38,16 +38,18 @@ src/
   lib/exportImage.ts  export PNG/SVG de la vue courante (html-to-image)
   lib/autoLayout.ts   agencement automatique en couches (Sugiyama, sans dépendance)
   lib/validate.ts     contrôle « santé » du schéma (isolés, vues vides, liens cassés…)
-  lib/nodeCatalog.ts  catalogue des types d'objets, groupés par CATÉGORIE
-                      (Générique / Intégration / ServiceNow) — pas que ServiceNow
+  lib/nodeCatalog.ts  catalogue minimal : 2 formes (object / zone). Le reste
+                      (nom/icône/couleur) se personnalise par objet (style Excalidraw)
+  lib/icons.ts        large jeu d'icônes sélectionnables (clé stable -> LucideIcon)
   lib/io.ts           export / import / partage (JSON + lien base64)
+  data/presets.ts     styles (couleur+icône) pour amorcer les exemples — PAS des types
   data/sampleProject.ts  projet d'exemple ServiceNow (macro + détails)
   components/
     Canvas.tsx        React Flow + drag&drop + double-clic = drill-down ;
                       onReconnect (rebrancher un lien) ; markerEnd (flèches)
     Toolbar.tsx       barre du haut (réorganiser/new/import/export/share/présenter/aide/agent)
-    Palette.tsx       palette de types groupée par catégorie
-    Inspector.tsx     édition objet (dupliquer) OU lien (sens + libellé + rebranchement)
+    Palette.tsx       palette des 2 formes : Objet + Zone
+    Inspector.tsx     édition objet (nom/icône/couleur/champs, dupliquer) OU lien
     HealthCheck.tsx   pastille « santé du schéma » (liste les problèmes, clic = y aller)
     Breadcrumb.tsx    fil d'Ariane entre niveaux
     Dashboard.tsx     tableau de bord : liste des schémas (stats) + démo animée
@@ -67,8 +69,10 @@ src/
 - Un nœud peut porter `data.childGraphId` → c'est le lien drill-down vers un
   sous-graphe. Entrer = `enterGraph(childGraphId)`.
 - La navigation est une **pile** `path: string[]` de graphIds (pour le breadcrumb).
-- Les types de nœuds sont définis UNE fois dans `nodeCatalog.ts` (`NodeKind`).
-  Ajouter un type = éditer ce catalogue, rien d'autre.
+- Deux formes seulement : `NodeKind = 'object' | 'zone'` (style Excalidraw).
+  L'identité d'un objet vient de son **nom / icône / couleur** (data.label/icon/color),
+  pas d'un « type » figé. `object` = carte (rendu `ArchNode`, `type:'arch'`),
+  `zone` = cadre de regroupement (rendu `ZoneNode`, `type:'zone'`).
 
 ## 5. Conventions
 

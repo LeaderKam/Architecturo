@@ -64,9 +64,6 @@ function ArchNodeInner({ data, selected }: NodeProps) {
           <div className="truncate text-[13px] font-semibold leading-tight text-slate-100">
             {d.label}
           </div>
-          <div className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-            {def.label}
-          </div>
           {d.description && (
             <div className="mt-1.5 line-clamp-2 text-[11px] leading-snug text-slate-400">
               {d.description}

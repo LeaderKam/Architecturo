@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 import type { ArchEdge, ArchNode, EdgeDirection, NodeKind } from '../types'
-import { NODE_CATALOG } from '../lib/nodeCatalog'
+import { ICON_KEYS } from '../lib/icons'
 import { applyDirection } from '../store'
 import type { AgentConfig } from './config'
 
@@ -13,12 +13,20 @@ export interface BuildResult {
 
 /** Représentation neutre produite par un provider, avant matérialisation. */
 interface DraftGraph {
-  nodes: { id: string; kind: string; label: string; description?: string }[]
+  nodes: {
+    id: string
+    label: string
+    description?: string
+    /** Clé d'icône (cf. lib/icons.ts) — optionnelle. */
+    icon?: string
+    /** Couleur d'accent hex — optionnelle. */
+    color?: string
+  }[]
   edges: { source: string; target: string; label?: string; direction?: EdgeDirection }[]
   rationale?: string
 }
 
-const VALID_KINDS = Object.keys(NODE_CATALOG) as NodeKind[]
+const HEX = /^#[0-9a-fA-F]{3,8}$/
 
 /** Transforme un brouillon (LLM ou heuristique) en nœuds/arêtes prêts pour le store. */
 function materialize(draft: DraftGraph): BuildResult {
@@ -26,14 +34,13 @@ function materialize(draft: DraftGraph): BuildResult {
   const nodes: ArchNode[] = draft.nodes.map((dn, i) => {
     const realId = `n_${nanoid(6)}`
     idMap.set(dn.id, realId)
-    const kind: NodeKind = VALID_KINDS.includes(dn.kind as NodeKind)
-      ? (dn.kind as NodeKind)
-      : 'custom'
+    const icon = dn.icon && ICON_KEYS.includes(dn.icon) ? dn.icon : undefined
+    const color = dn.color && HEX.test(dn.color) ? dn.color : undefined
     return {
       id: realId,
       type: 'arch',
       position: { x: 80 + (i % 3) * 300, y: 80 + Math.floor(i / 3) * 200 },
-      data: { label: dn.label, kind, description: dn.description, fields: [] },
+      data: { label: dn.label, kind: 'object' as NodeKind, description: dn.description, icon, color, fields: [] },
     }
   })
 
@@ -71,35 +78,36 @@ function buildLocal(prompt: string): DraftGraph {
   const nodes: DraftGraph['nodes'] = []
   const edges: DraftGraph['edges'] = []
   let i = 0
-  const add = (kind: NodeKind, label: string, description?: string) => {
+  // icon = clé d'icône (cf. lib/icons.ts) ; chaque nœud reste un `object`.
+  const add = (icon: string, label: string, description?: string) => {
     const id = `l${i++}`
-    nodes.push({ id, kind, label, description })
+    nodes.push({ id, label, description, icon })
     return id
   }
   const wants = (...keys: string[]) => keys.some((k) => p.includes(k))
 
   const trigger = wants('webhook', 'inbound', 'entrant', 'reçoit')
-    ? add('scriptedRest', 'Scripted REST API', 'Point d\'entrée entrant (inbound).')
-    : add('businessRule', 'Business Rule', 'Déclencheur serveur sur la table cible.')
+    ? add('code', 'Scripted REST API', 'Point d\'entrée entrant (inbound).')
+    : add('workflow', 'Business Rule', 'Déclencheur serveur sur la table cible.')
 
   if (wants('rest', 'api', 'http', 'sortant', 'outbound', 'jira', 'envoie', 'post')) {
-    const rm = add('restMessage', 'REST Message', 'Appel REST sortant vers le système distant.')
+    const rm = add('send', 'REST Message', 'Appel REST sortant vers le système distant.')
     edges.push({ source: trigger, target: rm, label: 'appelle' })
   }
   if (wants('transform', 'import', 'mapping', 'mappe', 'csv', 'fichier')) {
-    const ds = add('dataSource', 'Data Source', 'Source de données importée.')
-    const tm = add('transformMap', 'Transform Map', 'Mapping vers la table cible.')
+    const ds = add('fileinput', 'Data Source', 'Source de données importée.')
+    const tm = add('shuffle', 'Transform Map', 'Mapping vers la table cible.')
     edges.push({ source: ds, target: tm, label: 'alimente' })
   }
   if (wants('mid', 'on-premise', 'on premise', 'interne')) {
-    add('midServer', 'MID Server', 'Relais on-premise pour les flux internes.')
+    add('server', 'MID Server', 'Relais on-premise pour les flux internes.')
   }
   if (wants('queue', 'kafka', 'rabbit', 'bus', 'événement', 'event')) {
-    const q = add('queue', 'File / Bus', 'Bus de messages.')
+    const q = add('inbox', 'File / Bus', 'Bus de messages.')
     edges.push({ source: trigger, target: q, label: 'publie' })
   }
   if (wants('flow', 'orchestration', 'workflow', 'automation')) {
-    const fl = add('flow', 'Flow / Action', 'Orchestration via Flow Designer.')
+    const fl = add('branch', 'Flow / Action', 'Orchestration via Flow Designer.')
     edges.push({ source: trigger, target: fl, label: 'déclenche' })
   }
 
@@ -118,14 +126,16 @@ function buildLocal(prompt: string): DraftGraph {
 /* -------------------------------------------------------------------------- */
 
 function systemPrompt(): string {
-  const kinds = VALID_KINDS.map((k) => `${k} (${NODE_CATALOG[k].label})`).join(', ')
+  const icons = ICON_KEYS.join(', ')
   return [
     'Tu es un architecte d\'intégration. À partir de la description, produis un schéma d\'architecture.',
     'Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour, de la forme :',
-    '{ "nodes": [{ "id": "n1", "kind": "<kind>", "label": "...", "description": "..." }],',
+    '{ "nodes": [{ "id": "n1", "label": "...", "description": "...", "icon": "send", "color": "#34d399" }],',
     '  "edges": [{ "source": "n1", "target": "n2", "label": "appelle", "direction": "forward" }],',
     '  "rationale": "courte explication en français" }',
-    `Les valeurs de "kind" autorisées : ${kinds}.`,
+    'Chaque nœud est une carte libre : donne-lui un "label" clair et une "description" courte.',
+    `"icon" (optionnel) doit être une de ces clés : ${icons}.`,
+    '"color" (optionnel) est un hex (#rrggbb) pour regrouper visuellement les nœuds de même nature.',
     'direction ∈ "forward" | "both" | "none". Les id des edges référencent les id des nodes.',
     'Sois concis : 3 à 8 nœuds pertinents.',
   ].join('\n')
