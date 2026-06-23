@@ -48,24 +48,73 @@ npm run dev
 
 1. **Ouvrir l'exemple** ou cliquer sur **« Démo animée »** pour voir la plongée
    macro → intégration → composants en animation.
-2. **Créer un objet** : glissez un type depuis la palette de gauche sur le canvas
-   (ou cliquez dessus). Les types sont groupés en *Générique*, *Intégration*, *ServiceNow*.
-3. **Éditer un objet** : cliquez dessus → le panneau de droite permet de changer
-   son nom, son type, sa **couleur**, son **icône**, sa description et ses propriétés.
+2. **Ajouter une forme** : la palette de gauche propose **deux formes** —
+   **Objet** (une carte) et **Zone** (un cadre de regroupement). Glissez-la sur le
+   canvas, ou cliquez dessus.
+3. **Personnaliser un objet** (style Excalidraw) : cliquez dessus → le panneau de
+   droite permet de changer son **nom**, sa **couleur**, son **icône** (large choix),
+   sa description et ses propriétés. C'est l'apparence + le nom qui donnent son sens.
 4. **Relier deux objets** : survolez un objet (4 points de connexion apparaissent),
-   puis tirez vers un autre — dans n'importe quel sens.
+   puis tirez vers un autre — dans n'importe quel sens. On peut **rebrancher** un
+   lien existant en glissant son extrémité vers un autre objet.
 5. **Régler un lien** : cliquez dessus → sens (unique →, bidirectionnel ↔, sans flèche)
    et libellé.
 6. **Plonger (dive deep)** : double-cliquez sur un objet pour ouvrir/créer sa
    **vue détaillée**. Le fil d'Ariane en haut permet de remonter.
-7. **Rechercher** : champ de recherche en haut (ou `Ctrl/⌘+K`) — retrouve un objet
-   dans **tous les niveaux**, saute à sa vue et le centre.
-8. **Agent** : décrivez une intégration en langage naturel, il génère les composants.
-9. **Exporter** : menu *Exporter* → **JSON**, **PNG** ou **SVG** (image du schéma).
-10. **Annuler / Refaire** : boutons de la barre d'outils ou `Ctrl/⌘+Z` et `Ctrl/⌘+Maj+Z`.
-11. **Partager** : import `.json` ou lien encodé. Sauvegarde automatique (localStorage).
+7. **Regrouper** : posez une **Zone** (redimensionnable) derrière des objets pour
+   matérialiser une DMZ, un scope, un datacenter…
+8. **Réorganiser / Dupliquer** : bouton *Réorganiser* (agencement automatique) ;
+   `Ctrl/⌘+D` duplique l'objet sélectionné.
+9. **Santé du schéma** : la pastille en haut signale objets isolés, vues vides,
+   liens cassés et noms en double — un clic vous y amène.
+10. **Rechercher** : champ en haut (ou `Ctrl/⌘+K`) — retrouve un objet dans **tous
+    les niveaux**, saute à sa vue et le centre.
+11. **Agent** : décrivez une intégration en langage naturel, il génère les composants.
+12. **Présenter / Exporter** : *Présenter* masque les panneaux (`Échap` pour sortir) ;
+    *Exporter* → **JSON**, **PNG** ou **SVG**.
+13. **Annuler / Refaire** : barre d'outils ou `Ctrl/⌘+Z` et `Ctrl/⌘+Maj+Z`.
+14. **Partager** : import `.json` ou lien encodé. Sauvegarde automatique (localStorage).
 
 > Le bouton **« Aide »** dans la barre d'outils rouvre ce guide à tout moment.
+
+---
+
+## 🗂️ Cartographie CMDB
+
+Architecturo se prête bien à la **cartographie CMDB** (style ServiceNow) : services
+métier, services applicatifs et **CI** (Configuration Items) avec leurs dépendances.
+Un exemple prêt à l'emploi — **« Cartographie CMDB — exemple »** — est dans le
+tableau de bord.
+
+**Principe.** Tout est un **Objet** (carte) ; on distingue les classes de CI par leur
+**icône** et leur **couleur**, et on relie par des liens **étiquetés**. Aucune notion
+de « type » figé : la nature d'un CI se lit à son apparence et à ses relations.
+
+| Élément CMDB                       | Représentation conseillée                       |
+| ---------------------------------- | ----------------------------------------------- |
+| Service métier (Business Service)  | Objet · icône *immeuble* · ambre                |
+| Service applicatif (App Service)   | Objet · icône *calques* · violet                |
+| Serveur / Hôte                     | Objet · icône *serveur* · bleu                  |
+| Load Balancer                      | Objet · icône *aiguillage* · turquoise          |
+| Base de données                    | Objet · icône *base* · émeraude                 |
+| Stockage (SAN)                     | Objet · icône *disque* · gris                   |
+
+**Méthode :**
+
+1. **Vue macro = services & dépendances.** Posez les *services métier* et les
+   *services applicatifs* ; reliez-les avec des libellés de relation
+   (`Dépend de`, `Se connecte à`, `Utilise`).
+2. **Drill-down = les CI d'un service.** Double-cliquez sur un service applicatif
+   pour ouvrir sa **vue détaillée** : ses CI (serveurs, LB, BD, stockage) et leurs
+   relations techniques (`Équilibre vers`, `Hébergé sur`, `Appelle`).
+3. **Zones** pour regrouper par **datacenter**, **environnement** (Prod/Préprod) ou
+   **DMZ** : déposez une *Zone* derrière les CI concernés.
+4. **Convention couleur/icône = classe de CI.** Gardez une couleur stable par classe ;
+   la pastille **Santé** repère les CI non reliés ou les vues détaillées vides.
+
+> 🔜 L'import direct depuis ServiceNow (`cmdb_rel_ci`, relations *Depends on / Runs on*)
+> est prévu (voir *Roadmap*). En attendant, l'**Agent** génère une première trame que
+> vous affinez.
 
 ---
 
@@ -118,11 +167,16 @@ src/
   types.ts              modèle de données (Project, Graph, ArchNode, ArchEdge)
   store.ts              état global Zustand (navigation, CRUD, drill-down, bibliothèque)
   lib/
-    nodeCatalog.ts      catalogue des types d'objets, par catégorie
-    icons.ts            jeu d'icônes + couleurs sélectionnables
+    nodeCatalog.ts      catalogue minimal : 2 formes (object / zone)
+    icons.ts            large jeu d'icônes + couleurs sélectionnables
+    autoLayout.ts       agencement automatique en couches
+    validate.ts         contrôle « santé » du schéma
     io.ts               export / import / partage
     demo.ts             visite guidée animée
-  data/sampleProject.ts exemple ServiceNow à 3 niveaux
+  data/
+    presets.ts          styles (couleur+icône) pour amorcer les exemples
+    sampleProject.ts    exemple ServiceNow à 3 niveaux
+    cmdbProject.ts      exemple de cartographie CMDB
   components/           Dashboard, Canvas, Toolbar, Palette, Inspector, Breadcrumb, HelpModal
   agent/                config (providers + clé) et builder (heuristique + LLM)
 ```
@@ -134,7 +188,11 @@ Plus de détails dans [`CLAUDE.md`](./CLAUDE.md) (carte du code) et
 
 ## 🗺️ Roadmap
 
+- [x] Export image (PNG/SVG) du schéma
+- [x] Annuler/refaire, recherche multi-niveaux, agencement automatique
+- [x] Zones de regroupement (DMZ, scope, datacenter)
+- [x] Contrôle « santé » du schéma
 - [ ] Brancher l'agent sur l'API Claude via un backend/proxy (clés côté serveur)
-- [ ] Export image (PNG/SVG) du schéma
+- [ ] Import CMDB depuis l'API ServiceNow (`cmdb_rel_ci`, relations Depends on / Runs on)
 - [ ] Import depuis l'API ServiceNow (REST Messages / Scripted REST réels)
 - [ ] Collaboration temps réel
