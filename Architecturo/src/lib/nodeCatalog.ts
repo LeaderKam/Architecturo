@@ -26,11 +26,12 @@ import {
   Layers,
   Split,
   Network,
+  Frame,
   type LucideIcon,
 } from 'lucide-react'
 import type { NodeKind } from '../types'
 
-export type NodeCategory = 'Générique' | 'Intégration' | 'CMDB' | 'ServiceNow'
+export type NodeCategory = 'Disposition' | 'Générique' | 'Intégration' | 'CMDB' | 'ServiceNow'
 
 export interface NodeKindDef {
   kind: NodeKind
@@ -45,6 +46,12 @@ export interface NodeKindDef {
 
 /** Catalogue unique des types d'objets. Ajouter un type => ajouter ici. */
 export const NODE_CATALOG: Record<NodeKind, NodeKindDef> = {
+  // ---------------- Disposition (cadres de regroupement) ----------------
+  zone: {
+    kind: 'zone', label: 'Zone / Groupe', category: 'Disposition', color: '#64748b', icon: Frame,
+    hint: 'Cadre pour regrouper des objets (DMZ, scope, réseau…)',
+  },
+
   // ---------------- Génériques ----------------
   system: {
     kind: 'system', label: 'Système', category: 'Générique', color: '#818cf8', icon: Boxes,
@@ -172,7 +179,7 @@ export const NODE_CATALOG: Record<NodeKind, NodeKindDef> = {
 
 export const NODE_KINDS = Object.values(NODE_CATALOG)
 
-export const CATEGORY_ORDER: NodeCategory[] = ['Générique', 'Intégration', 'CMDB', 'ServiceNow']
+export const CATEGORY_ORDER: NodeCategory[] = ['Disposition', 'Générique', 'Intégration', 'CMDB', 'ServiceNow']
 
 /** Types regroupés par catégorie, dans l'ordre d'affichage. */
 export const NODE_KINDS_BY_CATEGORY: { category: NodeCategory; kinds: NodeKindDef[] }[] =

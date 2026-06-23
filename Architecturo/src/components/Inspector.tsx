@@ -206,13 +206,15 @@ export function Inspector() {
       </div>
 
       <div className="space-y-2 border-t border-line px-4 py-3">
-        <button
-          onClick={() => drillInto(node.id)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-indigo-500"
-        >
-          <Layers size={14} />
-          {d.childGraphId ? 'Ouvrir la vue détaillée' : 'Créer une vue détaillée'}
-        </button>
+        {d.kind !== 'zone' && (
+          <button
+            onClick={() => drillInto(node.id)}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-indigo-500"
+          >
+            <Layers size={14} />
+            {d.childGraphId ? 'Ouvrir la vue détaillée' : 'Créer une vue détaillée'}
+          </button>
+        )}
         <button
           onClick={() => duplicateNode(node.id)}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-line px-3 py-2 text-[12px] font-medium text-slate-300 transition-colors hover:bg-panel-2 hover:text-slate-100"

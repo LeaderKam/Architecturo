@@ -37,14 +37,17 @@ export function validateProject(project: Project): Issue[] {
       }
     }
 
+    // Objets « réels » uniquement : les zones (cadres) ne sont pas contrôlées.
+    const realNodes = g.nodes.filter((n) => n.data.kind !== 'zone')
+
     // Doublons de noms dans un même graphe.
     const byName = new Map<string, number>()
-    for (const n of g.nodes) {
+    for (const n of realNodes) {
       const label = (n.data.label ?? '').trim()
       if (label) byName.set(label.toLowerCase(), (byName.get(label.toLowerCase()) ?? 0) + 1)
     }
 
-    for (const n of g.nodes) {
+    for (const n of realNodes) {
       const label = (n.data.label ?? '').trim()
 
       if (!label) {
@@ -66,7 +69,7 @@ export function validateProject(project: Project): Issue[] {
       }
 
       // Objet isolé (aucun lien) — seulement si le graphe a plusieurs objets.
-      if (g.nodes.length > 1 && !connected.has(n.id)) {
+      if (realNodes.length > 1 && !connected.has(n.id)) {
         issues.push({
           id: `isolated-${g.id}-${n.id}`,
           level: 'warn',

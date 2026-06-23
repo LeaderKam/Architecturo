@@ -17,6 +17,8 @@ export type NodeKind =
   | 'event'
   | 'table'
   | 'custom'
+  // --- Disposition ---
+  | 'zone'
   // --- Intégration ---
   | 'integration'
   | 'webhook'

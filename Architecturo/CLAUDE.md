@@ -53,6 +53,7 @@ src/
     Dashboard.tsx     tableau de bord : liste des schémas (stats) + démo animée
     HelpModal.tsx     guide de prise en main in-app
     nodes/ArchNode.tsx  rendu d'un nœud (carte) + 4 handles (connexions multi-côtés)
+    nodes/ZoneNode.tsx  cadre « zone/groupe » redimensionnable (DMZ, scope), derrière les objets
   agent/
     config.ts         providers (local / Claude / compatible OpenAI) + clé, localStorage
     builder.ts        génération : heuristique locale OU appel LLM (claude-opus-4-8)

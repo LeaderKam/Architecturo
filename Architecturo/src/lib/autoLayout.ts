@@ -12,8 +12,11 @@ import type { ArchEdge, ArchNode } from '../types'
 const COL_GAP = 320 // espace horizontal entre couches
 const ROW_GAP = 140 // espace vertical entre nœuds d'une couche
 
-export function layoutGraph(nodes: ArchNode[], edges: ArchEdge[]): ArchNode[] {
-  if (nodes.length === 0) return nodes
+export function layoutGraph(allNodes: ArchNode[], edges: ArchEdge[]): ArchNode[] {
+  // Les zones (cadres) ne participent pas à l'agencement : on les laisse en place.
+  const zones = allNodes.filter((n) => n.type === 'zone')
+  const nodes = allNodes.filter((n) => n.type !== 'zone')
+  if (nodes.length === 0) return allNodes
 
   const ids = new Set(nodes.map((n) => n.id))
   // Liens internes au graphe, hors boucles sur soi-même.
@@ -84,5 +87,5 @@ export function layoutGraph(nodes: ArchNode[], edges: ArchEdge[]): ArchNode[] {
       out.push({ ...n, position: { x: c * COL_GAP, y: colTop + r * ROW_GAP } })
     })
   })
-  return out
+  return [...zones, ...out]
 }

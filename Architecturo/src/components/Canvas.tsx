@@ -18,8 +18,9 @@ import { useStore } from '../store'
 import { kindDef } from '../lib/nodeCatalog'
 import type { ArchEdge, NodeKind } from '../types'
 import { ArchNode } from './nodes/ArchNode'
+import { ZoneNode } from './nodes/ZoneNode'
 
-const nodeTypes = { arch: ArchNode }
+const nodeTypes = { arch: ArchNode, zone: ZoneNode }
 
 export function Canvas() {
   const graph = useStore((s) => s.currentGraph())
@@ -63,7 +64,14 @@ export function Canvas() {
     [setCenter, drillInto],
   )
 
-  const onNodeDoubleClick: NodeMouseHandler = useCallback((_, node: Node) => dive(node), [dive])
+  const onNodeDoubleClick: NodeMouseHandler = useCallback(
+    (_, node: Node) => {
+      // Une zone n'a pas de vue détaillée : pas de plongée.
+      if (node.type === 'zone') return
+      dive(node)
+    },
+    [dive],
+  )
 
   const onEdgeClick: EdgeMouseHandler = useCallback(
     (_, edge: Edge) => selectEdge(edge.id),
@@ -135,6 +143,7 @@ export function Canvas() {
           onDrop={onDrop}
           onDragOver={onDragOver}
           connectionMode={ConnectionMode.Loose}
+          elevateNodesOnSelect={false}
           fitView
           proOptions={{ hideAttribution: false }}
           defaultEdgeOptions={{
